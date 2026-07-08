@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Add Doctor — Admin{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-red">A</div>
+      <div>
+        <p class="sidebar-name">{{ session.user_name }}</p>
+        <p class="sidebar-role">Administrator</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.doctors_list') }}" class="sidebar-link">👨‍⚕️ Doctors</a>
+      <a href="{{ url_for('admin.add_doctor') }}" class="sidebar-link active">➕ Add Doctor</a>
+      <a href="{{ url_for('admin.services') }}" class="sidebar-link">🏥 Services</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <div class="breadcrumb">
+          <a href="{{ url_for('admin.doctors_list') }}">Doctors</a> › Add New Doctor
+        </div>
+        <h1 class="dash-title">Add Doctor</h1>
+      </div>
+    </div>
+
+    <div class="card" style="max-width:700px">
+      <form method="POST" action="{{ url_for('admin.add_doctor') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Full Name <span class="req">*</span></label>
+            <input type="text" id="name" name="name" class="form-input"
+                   placeholder="Dr. Jane Smith" required
+                   value="{{ request.form.get('name', '') }}">
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone" class="form-input"
+                   placeholder="+91 98765 43210"
+                   value="{{ request.form.get('phone', '') }}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email <span class="req">*</span></label>
+          <input type="email" id="email" name="email" class="form-input"
+                 placeholder="doctor@medicare.com" required
+                 value="{{ request.form.get('email', '') }}">
+        </div>
+
+        <div class="form-group">
+          <label for="password">Login Password <span class="req">*</span></label>
+          <div class="input-eye-wrap">
+            <input type="password" id="password" name="password" class="form-input"
+                   placeholder="Min. 8 characters" required>
+            <button type="button" class="eye-toggle" onclick="toggleEye('password', this)">👁</button>
+          </div>
+          <span class="form-hint">The doctor will use this to log in.</span>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="department">Department <span class="req">*</span></label>
+            <select id="department" name="department" class="form-input" required>
+              <option value="">— Select department —</option>
+              {% for dept in departments %}
+                <option value="{{ dept }}"
+                  {% if request.form.get('department') == dept %}selected{% endif %}>
+                  {{ dept }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="specialization">Specialization <span class="req">*</span></label>
+            <input type="text" id="specialization" name="specialization" class="form-input"
+                   placeholder="e.g. Interventional Cardiologist" required
+                   value="{{ request.form.get('specialization', '') }}">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="qualification">Qualification</label>
+            <input type="text" id="qualification" name="qualification" class="form-input"
+                   placeholder="MBBS, MD, DM…"
+                   value="{{ request.form.get('qualification', '') }}">
+          </div>
+          <div class="form-group">
+            <label for="experience_years">Years of Experience</label>
+            <input type="number" id="experience_years" name="experience_years"
+                   class="form-input" min="0" max="60" placeholder="10"
+                   value="{{ request.form.get('experience_years', '') }}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bio">Bio / About</label>
+          <textarea id="bio" name="bio" class="form-input form-textarea" rows="3"
+                    placeholder="A short description shown to patients…">{{ request.form.get('bio', '') }}</textarea>
+        </div>
+
+        <div class="form-actions">
+          <a href="{{ url_for('admin.doctors_list') }}" class="btn btn-outline">Cancel</a>
+          <button type="submit" class="btn btn-primary">Add Doctor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

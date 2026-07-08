@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MediCare Hospital{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════════════ NAVBAR ═══════════════════════ -->
+<nav class="navbar" id="navbar">
+  <div class="container nav-inner">
+
+    <!-- Brand -->
+    <a href="{{ url_for('main.index') }}" class="nav-brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <rect width="28" height="28" rx="8" fill="#1D4ED8"/>
+        <rect x="12" y="5" width="4" height="18" rx="2" fill="white"/>
+        <rect x="5" y="12" width="18" height="4" rx="2" fill="white"/>
+      </svg>
+      <span>MediCare</span>
+    </a>
+
+    <!-- Center links -->
+    <div class="nav-links" id="nav-links">
+      <a href="{{ url_for('main.index') }}"
+         class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">Home</a>
+      <a href="{{ url_for('main.services') }}"
+         class="nav-link {% if request.endpoint == 'main.services' %}active{% endif %}">Services</a>
+      <a href="{{ url_for('main.doctors') }}"
+         class="nav-link {% if request.endpoint == 'main.doctors' %}active{% endif %}">Doctors</a>
+    </div>
+
+    <!-- Auth section -->
+    <div class="nav-auth" id="nav-auth">
+      {% set role = session.get('user_role') %}
+      {% if role == 'user' %}
+        <a href="{{ url_for('user.dashboard') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('appointments.my_appointments') }}" class="nav-link">My Appointments</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sm">Logout</a>
+      {% elif role == 'doctor' %}
+        <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">Portal</a>
+        <a href="{{ url_for('doctor.appointments') }}" class="nav-link">Appointments</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sm">Logout</a>
+      {% elif role == 'admin' %}
+        <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Admin Panel</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sm">Logout</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary-sm">Register</a>
+      {% endif %}
+    </div>
+
+    <!-- Hamburger -->
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+  </div>
+</nav>
+
+<!-- ═══════════════════════ FLASH MESSAGES ═══════════════════════ -->
+{% with messages = get_flashed_messages(with_categories=True) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <span>{{ message }}</span>
+          <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ═══════════════════════ MAIN CONTENT ═══════════════════════ -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <svg width="24" height="24" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+        <rect width="28" height="28" rx="8" fill="#3B82F6"/>
+        <rect x="12" y="5" width="4" height="18" rx="2" fill="white"/>
+        <rect x="5" y="12" width="18" height="4" rx="2" fill="white"/>
+      </svg>
+      <span class="footer-name">MediCare Hospital</span>
+      <p class="footer-tagline">Compassionate care, every day.</p>
+    </div>
+    <div class="footer-cols">
+      <div>
+        <h4>Patients</h4>
+        <a href="{{ url_for('auth.register') }}">Register</a>
+        <a href="{{ url_for('appointments.select_doctor') }}">Book Appointment</a>
+        <a href="{{ url_for('main.services') }}">Our Services</a>
+      </div>
+      <div>
+        <h4>Doctors</h4>
+        <a href="{{ url_for('auth.login') }}">Doctor Login</a>
+        <a href="{{ url_for('main.doctors') }}">Meet Our Team</a>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <a href="tel:+911234567890">+91 1234 567 890</a>
+        <a href="mailto:info@medicare.com">info@medicare.com</a>
+        <span>123 Health Street, Mumbai</span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container" style="max-width: 500px; margin: 40px auto; padding: 30px; text-align: center; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; border: 1px solid #eaeaea;">
+    
+    <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: #888888; margin-bottom: 8px; font-weight: 600;">Designed and Developed By</h3>
+    
+    <h2 style="font-size: 24px; color: #2c3e50; margin: 0 0 20px 0; font-weight: 400; line-height: 1.4;">
+        <strong style="color: #007bff; font-weight: 700;">Mayur B. Gund</strong><br>
+        <span style="font-size: 16px; color: #5a6268;">Full Stack Developer</span>
+    </h2>
+    
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    
+    <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px; font-weight: 500;">Connect with me:</p>
+    
+    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <a href="mailto:mgund1920@gmail.com" style="padding: 8px 16px; font-size: 14px; font-weight: 500; color: #ffffff; background-color: #dc3545; text-decoration: none; border-radius: 6px; transition: background 0.2s;">Email</a>
+        <a href="https://www.linkedin.com/in/mgund1920" target="_blank" style="padding: 8px 16px; font-size: 14px; font-weight: 500; color: #ffffff; background-color: #0077b5; text-decoration: none; border-radius: 6px; transition: background 0.2s;">LinkedIn</a>
+        <a href="https://www.github.com/engineermayur-07" target="_blank" style="padding: 8px 16px; font-size: 14px; font-weight: 500; color: #ffffff; background-color: #24292e; text-decoration: none; border-radius: 6px; transition: background 0.2s;">GitHub</a>
+    </div>
+    
+  </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Services — MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Our Services</h1>
+    <p>Comprehensive healthcare across all major medical specialties.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    {% if services %}
+      <div class="grid-3">
+        {% for svc in services %}
+          <div class="service-card">
+            <div class="service-icon">{{ svc.icon }}</div>
+            <h3 class="service-name">{{ svc.name }}</h3>
+            {% if svc.department %}
+              <span class="service-dept">{{ svc.department }}</span>
+            {% endif %}
+            {% if svc.description %}
+              <p class="service-desc">{{ svc.description }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">🏥</div>
+        <h3>Services coming soon</h3>
+        <p>We're updating our services list. Please check back shortly.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

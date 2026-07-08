@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient.name }} — Medical History{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-teal">{{ session.user_name[0].upper() }}</div>
+      <div>
+        <p class="sidebar-name">Dr. {{ session.user_name }}</p>
+        <p class="sidebar-role">Doctor</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('doctor.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('doctor.appointments') }}" class="sidebar-link">📋 Appointments</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="dash-main">
+
+    <!-- Patient banner -->
+    <div class="patient-banner">
+      <div class="appt-avatar appt-avatar-green" style="width:60px;height:60px;font-size:1.4rem;flex-shrink:0">
+        {{ patient.name[0].upper() }}
+      </div>
+      <div style="flex:1">
+        <h1 class="dash-title" style="margin:0">{{ patient.name }}</h1>
+        <p class="dash-sub">{{ patient.email }}
+          {% if patient.phone %} · {{ patient.phone }}{% endif %}
+        </p>
+      </div>
+      <div class="stat-card" style="min-width:100px;text-align:center">
+        <span class="stat-num-sm">{{ total }}</span>
+        <span class="stat-lbl">Records</span>
+      </div>
+    </div>
+
+    <!-- Filter tabs -->
+    <div class="filter-tabs" style="margin:20px 0">
+      <a href="{{ url_for('records.patient_history', user_id=patient.id) }}"
+         class="filter-tab {% if type_filter == 'all' %}active{% endif %}">All</a>
+      {% for value, label in record_types %}
+        <a href="{{ url_for('records.patient_history', user_id=patient.id, type=value) }}"
+           class="filter-tab {% if type_filter == value %}active{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+
+    <!-- Records -->
+    {% if all_records %}
+      <div class="records-timeline">
+        {% set ns = namespace(current_month='') %}
+        {% for rec in all_records %}
+          {% set month = rec.created_at.strftime('%B %Y') %}
+          {% if month != ns.current_month %}
+            {% set ns.current_month = month %}
+            <div class="timeline-month">{{ month }}</div>
+          {% endif %}
+
+          <div class="record-card">
+            <div class="record-type-icon">{{ rec.type_icon }}</div>
+
+            <div class="record-body">
+              <div class="record-header-row">
+                <span class="badge {{ rec.type_badge }}">{{ rec.type_label }}</span>
+                <span class="record-date">{{ rec.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+              </div>
+              <h3 class="record-title">{{ rec.title }}</h3>
+              <p class="record-doctor">
+                Uploaded by Dr. {{ rec.uploader.name }} · {{ rec.uploader.department }}
+              </p>
+              {% if rec.linked_appointment %}
+                <p class="record-appt-ref">
+                  Appointment: {{ rec.linked_appointment.date.strftime('%d %b %Y') }}
+                  at {{ rec.linked_appointment.time_slot }}
+                </p>
+              {% endif %}
+              {% if rec.notes %}
+                <div class="record-notes-wrap">
+                  <button class="record-notes-toggle" onclick="toggleNotes(this)">
+                    📝 Show Notes ▾
+                  </button>
+                  <div class="record-notes" style="display:none">{{ rec.notes }}</div>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="record-actions">
+              {% if rec.has_file %}
+                <div class="file-chip">
+                  <span class="file-chip-icon">
+                    {% if 'pdf' in (rec.file_mime or '') %}📕{% else %}🖼️{% endif %}
+                  </span>
+                  <div>
+                    <p class="file-chip-name">{{ rec.file_name }}</p>
+                    <p class="file-chip-size">{{ rec.file_size_human }}</p>
+                  </div>
+                </div>
+                <div class="record-btn-row">
+                  <a href="{{ url_for('records.view_inline', record_id=rec.id) }}"
+                     target="_blank" class="btn btn-outline btn-sm">View</a>
+                  <a href="{{ url_for('records.download', record_id=rec.id) }}"
+                     class="btn btn-primary btn-sm">⬇ Download</a>
+                </div>
+              {% endif %}
+              <!-- Doctor can delete their own records -->
+              {% if rec.doctor_id == session.get('user_id') %}
+                <form method="POST"
+                      action="{{ url_for('records.delete', record_id=rec.id) }}"
+                      onsubmit="return confirm('Delete this record permanently?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn-link-danger" style="margin-top:6px;font-size:12px">
+                    Delete
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+    {% else %}
+      <div class="empty-state empty-sm">
+        <div class="empty-icon">🗂️</div>
+        <h3>No records found</h3>
+        <p>No medical records have been uploaded for this patient yet.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleNotes(btn) {
+  const notesDiv = btn.nextElementSibling;
+  const visible  = notesDiv.style.display !== 'none';
+  notesDiv.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '📝 Show Notes ▾' : '📝 Hide Notes ▴';
+}
+</script>
+{% endblock %}

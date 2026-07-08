@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}MediCare Hospital — Quality Care, Every Step{% endblock %}
+
+{% block content %}
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="container hero-inner">
+    <div class="hero-text">
+      <span class="hero-eyebrow">Trusted Healthcare</span>
+      <h1 class="hero-title">Expert Care,<br>Every Step<br>of the Way</h1>
+      <p class="hero-sub">Book appointments with our experienced specialists in minutes.
+         Your health, our priority — 24/7.</p>
+      <div class="hero-cta">
+        {% if session.get('user_role') == 'user' %}
+          <a href="{{ url_for('appointments.select_doctor') }}" class="btn btn-white">Book Appointment</a>
+          <a href="{{ url_for('user.dashboard') }}" class="btn btn-ghost-white">My Dashboard</a>
+        {% else %}
+          <a href="{{ url_for('auth.register') }}" class="btn btn-white">Get Started</a>
+          <a href="{{ url_for('main.services') }}" class="btn btn-ghost-white">Our Services</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="hero-cards">
+      <div class="hero-stat-card">
+        <span class="stat-num">200+</span>
+        <span class="stat-label">Specialist Doctors</span>
+      </div>
+      <div class="hero-stat-card">
+        <span class="stat-num">50K+</span>
+        <span class="stat-label">Patients Treated</span>
+      </div>
+      <div class="hero-stat-card">
+        <span class="stat-num">30+</span>
+        <span class="stat-label">Departments</span>
+      </div>
+      <div class="hero-stat-card">
+        <span class="stat-num">24/7</span>
+        <span class="stat-label">Emergency Care</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── SERVICES PREVIEW ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">What We Offer</span>
+      <h2 class="section-title">Our Services</h2>
+      <p class="section-sub">World-class medical services across all major specialties.</p>
+    </div>
+    {% if services %}
+      <div class="grid-3">
+        {% for svc in services %}
+          <div class="service-card">
+            <div class="service-icon">{{ svc.icon }}</div>
+            <h3 class="service-name">{{ svc.name }}</h3>
+            {% if svc.department %}
+              <span class="service-dept">{{ svc.department }}</span>
+            {% endif %}
+            {% if svc.description %}
+              <p class="service-desc">{{ svc.description }}</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-center text-muted">Services coming soon.</p>
+    {% endif %}
+    <div class="section-footer">
+      <a href="{{ url_for('main.services') }}" class="btn btn-outline">View All Services →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DOCTORS PREVIEW ─── -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Meet the Team</span>
+      <h2 class="section-title">Our Doctors</h2>
+      <p class="section-sub">Experienced, compassionate specialists ready to help you.</p>
+    </div>
+    {% if doctors %}
+      <div class="grid-4">
+        {% for doc in doctors %}
+          <div class="doctor-card">
+            <div class="doctor-avatar">{{ doc.initials }}</div>
+            <h3 class="doctor-name">Dr. {{ doc.name }}</h3>
+            <p class="doctor-spec">{{ doc.specialization }}</p>
+            <p class="doctor-dept">{{ doc.department }}</p>
+            {% if doc.experience_years %}
+              <p class="doctor-exp">{{ doc.experience_years }} yrs experience</p>
+            {% endif %}
+            {% if session.get('user_role') == 'user' %}
+              <a href="{{ url_for('appointments.book', doctor_id=doc.id) }}"
+                 class="btn btn-primary btn-sm">Book Appointment</a>
+            {% elif not session.get('user_role') %}
+              <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-sm">Book Now</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-center text-muted">No doctors listed yet.</p>
+    {% endif %}
+    <div class="section-footer">
+      <a href="{{ url_for('main.doctors') }}" class="btn btn-outline">Meet All Doctors →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── WHY US ─── -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-eyebrow">Why MediCare</span>
+      <h2 class="section-title">Healthcare You Can Trust</h2>
+    </div>
+    <div class="grid-3">
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure & Private</h3>
+        <p>Your health data is encrypted and kept strictly confidential.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant Booking</h3>
+        <p>Book appointments online in under 2 minutes, no waiting on hold.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏅</div>
+        <h3>Certified Specialists</h3>
+        <p>All our doctors are board-certified with years of clinical experience.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CTA BANNER ─── -->
+{% if not session.get('user_role') %}
+<section class="cta-banner">
+  <div class="container cta-inner">
+    <div>
+      <h2>Ready to take charge of your health?</h2>
+      <p>Create a free account and book your first appointment today.</p>
+    </div>
+    <div class="cta-actions">
+      <a href="{{ url_for('auth.register') }}" class="btn btn-white">Create Account</a>
+      <a href="{{ url_for('auth.login') }}" class="btn btn-ghost-white">Login</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}

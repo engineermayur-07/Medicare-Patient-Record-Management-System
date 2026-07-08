@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% block title %}Upload Medical Record — MediCare{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="{{ url_for('doctor.dashboard') }}">Dashboard</a> ›
+      <a href="{{ url_for('doctor.appointments') }}">Appointments</a> ›
+      Upload Record
+    </div>
+    <h1>Upload Medical Record</h1>
+    <p>Attaching to appointment on {{ appointment.date.strftime('%A, %d %B %Y') }} at {{ appointment.time_slot }}</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container upload-layout">
+
+    <!-- Patient info panel -->
+    <aside class="upload-patient-panel">
+      <div class="card">
+        <h3 class="card-title">Patient</h3>
+        <div class="patient-info-row">
+          <div class="appt-avatar appt-avatar-green" style="width:52px;height:52px;font-size:1.2rem">
+            {{ patient.name[0].upper() }}
+          </div>
+          <div>
+            <p class="patient-name">{{ patient.name }}</p>
+            <p class="patient-email">{{ patient.email }}</p>
+            {% if patient.phone %}
+              <p class="patient-phone">{{ patient.phone }}</p>
+            {% endif %}
+          </div>
+        </div>
+        <hr class="divider">
+        <div class="appt-meta">
+          <div class="meta-row">
+            <span class="meta-label">Appointment</span>
+            <span>{{ appointment.date.strftime('%d %b %Y') }} · {{ appointment.time_slot }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Status</span>
+            <span class="badge {{ appointment.status_badge }}">{{ appointment.status|title }}</span>
+          </div>
+          {% if appointment.reason %}
+            <div class="meta-row">
+              <span class="meta-label">Reason</span>
+              <span>{{ appointment.reason }}</span>
+            </div>
+          {% endif %}
+        </div>
+        <hr class="divider">
+        <a href="{{ url_for('records.patient_history', user_id=patient.id) }}" class="btn btn-outline btn-full btn-sm">
+          View Full History →
+        </a>
+      </div>
+    </aside>
+
+    <!-- Upload form -->
+    <div class="upload-form-panel">
+      <div class="card">
+        <h2 class="card-title">Record Details</h2>
+
+        <form method="POST"
+              action="{{ url_for('records.upload', appointment_id=appointment.id) }}"
+              enctype="multipart/form-data"
+              id="upload-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="record_type">Record Type <span class="req">*</span></label>
+              <select id="record_type" name="record_type" class="form-input" required>
+                <option value="">— Select type —</option>
+                {% for value, label in record_types %}
+                  <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="title">Title <span class="req">*</span></label>
+              <input type="text" id="title" name="title" class="form-input"
+                     placeholder="e.g. Blood CBC Report – Jan 2025" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="notes">Clinical Notes / Instructions</label>
+            <textarea id="notes" name="notes" class="form-input form-textarea" rows="5"
+                      placeholder="Diagnosis summary, medication dosage, follow-up instructions, test interpretation…"></textarea>
+          </div>
+
+          <!-- File drop zone -->
+          <div class="form-group">
+            <label>Attach File <span class="optional">(PDF, PNG, JPG · max 10 MB)</span></label>
+            <div class="drop-zone" id="drop-zone">
+              <input type="file" id="file" name="file" class="drop-zone-input"
+                     accept=".pdf,.png,.jpg,.jpeg">
+              <div class="drop-zone-body" id="drop-body">
+                <div class="drop-icon">📎</div>
+                <p class="drop-title">Drag & drop file here</p>
+                <p class="drop-sub">or <span class="drop-browse">click to browse</span></p>
+              </div>
+              <div class="drop-preview" id="drop-preview" style="display:none">
+                <span class="drop-file-icon" id="drop-file-icon">📄</span>
+                <div>
+                  <p class="drop-file-name" id="drop-file-name"></p>
+                  <p class="drop-file-size" id="drop-file-size"></p>
+                </div>
+                <button type="button" class="drop-remove" id="drop-remove" title="Remove file">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="{{ url_for('doctor.appointments') }}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Upload Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropZone    = document.getElementById('drop-zone');
+const fileInput   = document.getElementById('file');
+const dropBody    = document.getElementById('drop-body');
+const dropPreview = document.getElementById('drop-preview');
+const dropName    = document.getElementById('drop-file-name');
+const dropSize    = document.getElementById('drop-file-size');
+const dropIcon    = document.getElementById('drop-file-icon');
+const dropRemove  = document.getElementById('drop-remove');
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function showPreview(file) {
+  dropName.textContent = file.name;
+  dropSize.textContent = formatSize(file.size);
+  dropIcon.textContent = file.type === 'application/pdf' ? '📕' : '🖼️';
+  dropBody.style.display    = 'none';
+  dropPreview.style.display = 'flex';
+  dropZone.classList.add('drop-zone--filled');
+}
+
+function clearPreview() {
+  fileInput.value = '';
+  dropBody.style.display    = 'flex';
+  dropPreview.style.display = 'none';
+  dropZone.classList.remove('drop-zone--filled');
+}
+
+dropZone.addEventListener('click', e => {
+  if (!e.target.closest('#drop-remove')) fileInput.click();
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) showPreview(fileInput.files[0]);
+});
+
+dropRemove.addEventListener('click', e => {
+  e.stopPropagation();
+  clearPreview();
+});
+
+['dragenter','dragover'].forEach(evt =>
+  dropZone.addEventListener(evt, e => {
+    e.preventDefault();
+    dropZone.classList.add('drop-zone--active');
+  })
+);
+
+['dragleave','dragend'].forEach(evt =>
+  dropZone.addEventListener(evt, () => dropZone.classList.remove('drop-zone--active'))
+);
+
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drop-zone--active');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    // Assign to input via DataTransfer
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    showPreview(file);
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Doctors — Admin{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-red">A</div>
+      <div>
+        <p class="sidebar-name">{{ session.user_name }}</p>
+        <p class="sidebar-role">Administrator</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.doctors_list') }}" class="sidebar-link active">👨‍⚕️ Doctors</a>
+      <a href="{{ url_for('admin.add_doctor') }}" class="sidebar-link">➕ Add Doctor</a>
+      <a href="{{ url_for('admin.services') }}" class="sidebar-link">🏥 Services</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <h1 class="dash-title">Doctors</h1>
+      <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary">+ Add Doctor</a>
+    </div>
+
+    {% if doctors %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Specialization</th>
+              <th>Email</th>
+              <th>Exp.</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for doc in doctors %}
+              <tr>
+                <td>
+                  <div class="table-avatar-row">
+                    <div class="table-avatar">{{ doc.initials }}</div>
+                    <span>Dr. {{ doc.name }}</span>
+                  </div>
+                </td>
+                <td>{{ doc.department }}</td>
+                <td>{{ doc.specialization }}</td>
+                <td>{{ doc.email }}</td>
+                <td>{{ doc.experience_years }} yrs</td>
+                <td>
+                  {% if doc.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-muted">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="action-btns">
+                    <form method="POST"
+                          action="{{ url_for('admin.toggle_doctor', doctor_id=doc.id) }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="btn btn-sm btn-outline">
+                        {{ 'Deactivate' if doc.is_active else 'Activate' }}
+                      </button>
+                    </form>
+                    <form method="POST"
+                          action="{{ url_for('admin.delete_doctor', doctor_id=doc.id) }}"
+                          onsubmit="return confirm('Permanently delete Dr. {{ doc.name }}? This removes all their appointments.')">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state empty-sm">
+        <div class="empty-icon">👨‍⚕️</div>
+        <h3>No doctors yet</h3>
+        <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary btn-sm">Add First Doctor</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Our Doctors — MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1>Meet Our Doctors</h1>
+    <p>Experienced specialists dedicated to your health and well-being.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    {% if doctors %}
+      <div class="grid-4">
+        {% for doc in doctors %}
+          <div class="doctor-card">
+            <div class="doctor-avatar">{{ doc.initials }}</div>
+            <h3 class="doctor-name">Dr. {{ doc.name }}</h3>
+            <p class="doctor-spec">{{ doc.specialization }}</p>
+            <p class="doctor-dept">{{ doc.department }}</p>
+            {% if doc.qualification %}
+              <p class="doctor-qual">{{ doc.qualification }}</p>
+            {% endif %}
+            {% if doc.experience_years %}
+              <p class="doctor-exp">{{ doc.experience_years }} yrs experience</p>
+            {% endif %}
+            {% if doc.bio %}
+              <p class="doctor-bio">{{ doc.bio[:100] }}{% if doc.bio|length > 100 %}…{% endif %}</p>
+            {% endif %}
+            {% if session.get('user_role') == 'user' %}
+              <a href="{{ url_for('appointments.book', doctor_id=doc.id) }}"
+                 class="btn btn-primary btn-sm">Book Appointment</a>
+            {% elif not session.get('user_role') %}
+              <a href="{{ url_for('auth.register') }}" class="btn btn-outline btn-sm">Book Now</a>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👨‍⚕️</div>
+        <h3>No doctors listed yet</h3>
+        <p>Our team directory is being updated.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

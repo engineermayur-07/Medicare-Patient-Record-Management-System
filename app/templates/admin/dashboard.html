@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-red">A</div>
+      <div>
+        <p class="sidebar-name">{{ session.user_name }}</p>
+        <p class="sidebar-role">Administrator</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.doctors_list') }}" class="sidebar-link">👨‍⚕️ Doctors</a>
+      <a href="{{ url_for('admin.add_doctor') }}" class="sidebar-link">➕ Add Doctor</a>
+      <a href="{{ url_for('admin.services') }}" class="sidebar-link">🏥 Services</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">Admin Dashboard</h1>
+        <p class="dash-sub">MediCare Hospital Management</p>
+      </div>
+      <a href="{{ url_for('admin.add_doctor') }}" class="btn btn-primary">+ Add Doctor</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card stat-card-blue">
+        <span class="stat-num-sm">{{ total_users }}</span>
+        <span class="stat-lbl">Registered Patients</span>
+      </div>
+      <div class="stat-card stat-card-teal">
+        <span class="stat-num-sm">{{ total_doctors }}</span>
+        <span class="stat-lbl">Active Doctors</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num-sm">{{ total_appts }}</span>
+        <span class="stat-lbl">Total Appointments</span>
+      </div>
+      <div class="stat-card stat-card-amber">
+        <span class="stat-num-sm">{{ pending_appts }}</span>
+        <span class="stat-lbl">Pending Appointments</span>
+      </div>
+    </div>
+
+    <!-- Recent appointments -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <h2>Recent Appointments</h2>
+      </div>
+      {% if recent_appts %}
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Booked</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for appt in recent_appts %}
+                <tr>
+                  <td>{{ appt.user.name }}</td>
+                  <td>Dr. {{ appt.doctor.name }}</td>
+                  <td>{{ appt.date.strftime('%d %b %Y') }}</td>
+                  <td>{{ appt.time_slot }}</td>
+                  <td><span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span></td>
+                  <td>{{ appt.created_at.strftime('%d %b, %H:%M') }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-muted">No appointments yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

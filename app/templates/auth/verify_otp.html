@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Verify Email — MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="otp-icon">✉️</div>
+    <h1 class="auth-title">Check your email</h1>
+    <p class="auth-sub">
+      We sent a 6-digit code to<br>
+      <strong>{{ email }}</strong>
+    </p>
+
+    <form method="POST" action="{{ url_for('auth.verify_otp') }}" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label for="otp">Enter OTP</label>
+        <input type="text" id="otp" name="otp" class="form-input otp-input"
+               placeholder="000000" maxlength="6" inputmode="numeric"
+               pattern="[0-9]{6}" autocomplete="one-time-code" required autofocus>
+        <span class="form-hint">Code expires in 10 minutes</span>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">Verify Email</button>
+    </form>
+
+    <div class="otp-resend">
+      <p>Didn't receive it?</p>
+      <form method="POST" action="{{ url_for('auth.resend_otp') }}" style="display:inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-link">Resend OTP</button>
+      </form>
+      &nbsp;or&nbsp;
+      <a href="{{ url_for('auth.register') }}" class="btn-link">Start over</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  /* Auto-submit when 6 digits are entered */
+  document.getElementById('otp').addEventListener('input', function () {
+    if (this.value.length === 6) this.closest('form').submit();
+  });
+</script>
+{% endblock %}

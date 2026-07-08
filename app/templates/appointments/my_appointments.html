@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}My Appointments — MediCare{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="{{ url_for('user.dashboard') }}">Dashboard</a> › My Appointments
+    </div>
+    <h1>My Appointments</h1>
+    <a href="{{ url_for('appointments.select_doctor') }}" class="btn btn-primary" style="margin-top:8px">
+      + Book New Appointment
+    </a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Upcoming -->
+    <h2 class="list-heading">Upcoming</h2>
+    {% if upcoming %}
+      <div class="appt-list">
+        {% for appt in upcoming %}
+          <div class="appt-card">
+            <div class="appt-avatar">{{ appt.doctor.initials }}</div>
+            <div class="appt-info">
+              <p class="appt-doctor">Dr. {{ appt.doctor.name }}</p>
+              <p class="appt-spec">{{ appt.doctor.specialization }} — {{ appt.doctor.department }}</p>
+              <p class="appt-date">
+                📅 {{ appt.date.strftime('%A, %d %B %Y') }} &nbsp; ⏰ {{ appt.time_slot }}
+              </p>
+              {% if appt.reason %}
+                <p class="appt-reason"><em>{{ appt.reason }}</em></p>
+              {% endif %}
+            </div>
+            <div class="appt-status-col">
+              <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
+              {% if appt.status in ['pending', 'confirmed'] %}
+                <form method="POST"
+                      action="{{ url_for('appointments.cancel', appt_id=appt.id) }}"
+                      onsubmit="return confirm('Cancel this appointment?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-link-danger" style="margin-top:8px">Cancel</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state empty-sm">
+        <div class="empty-icon">📅</div>
+        <h3>No upcoming appointments</h3>
+        <a href="{{ url_for('appointments.select_doctor') }}" class="btn btn-primary btn-sm">Book Now</a>
+      </div>
+    {% endif %}
+
+    <!-- Past / Completed -->
+    <h2 class="list-heading" style="margin-top: 40px">Past & Cancelled</h2>
+    {% if past %}
+      <div class="appt-list">
+        {% for appt in past %}
+          <div class="appt-card appt-card-muted">
+            <div class="appt-avatar appt-avatar-muted">{{ appt.doctor.initials }}</div>
+            <div class="appt-info">
+              <p class="appt-doctor">Dr. {{ appt.doctor.name }}</p>
+              <p class="appt-spec">{{ appt.doctor.specialization }}</p>
+              <p class="appt-date">📅 {{ appt.date.strftime('%A, %d %B %Y') }} &nbsp; ⏰ {{ appt.time_slot }}</p>
+              {% if appt.notes %}
+                <p class="appt-notes"><strong>Doctor's notes:</strong> {{ appt.notes }}</p>
+              {% endif %}
+            </div>
+            <div class="appt-status-col">
+              <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-muted">No past appointments.</p>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

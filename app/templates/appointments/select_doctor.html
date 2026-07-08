@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Book an Appointment — MediCare{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="{{ url_for('user.dashboard') }}">Dashboard</a> › Book Appointment
+    </div>
+    <h1>Choose a Doctor</h1>
+    <p>Select a specialist to book your appointment with.</p>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Search / filter bar -->
+    <div class="filter-bar">
+      <input type="text" id="doctor-search" class="form-input filter-input"
+             placeholder="Search by name or specialization…" oninput="filterDoctors()">
+    </div>
+
+    {% if doctors %}
+      <div class="grid-3" id="doctor-grid">
+        {% for doc in doctors %}
+          <div class="doctor-book-card" data-search="{{ doc.name|lower }} {{ doc.specialization|lower }} {{ doc.department|lower }}">
+            <div class="doctor-avatar doctor-avatar-lg">{{ doc.initials }}</div>
+            <h3 class="doctor-name">Dr. {{ doc.name }}</h3>
+            <p class="doctor-spec">{{ doc.specialization }}</p>
+            <p class="doctor-dept">{{ doc.department }}</p>
+            {% if doc.qualification %}
+              <p class="doctor-qual">{{ doc.qualification }}</p>
+            {% endif %}
+            {% if doc.experience_years %}
+              <p class="doctor-exp">{{ doc.experience_years }} yrs experience</p>
+            {% endif %}
+            {% if doc.bio %}
+              <p class="doctor-bio">{{ doc.bio[:80] }}{% if doc.bio|length > 80 %}…{% endif %}</p>
+            {% endif %}
+            <a href="{{ url_for('appointments.book', doctor_id=doc.id) }}"
+               class="btn btn-primary btn-full">Select & Book →</a>
+          </div>
+        {% endfor %}
+      </div>
+      <p class="no-results" id="no-results" style="display:none">
+        No doctors found matching your search.
+      </p>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">👨‍⚕️</div>
+        <h3>No doctors available</h3>
+        <p>Please check back soon.</p>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterDoctors() {
+  const q = document.getElementById('doctor-search').value.toLowerCase();
+  const cards = document.querySelectorAll('.doctor-book-card');
+  let visible = 0;
+  cards.forEach(card => {
+    const match = card.dataset.search.includes(q);
+    card.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  document.getElementById('no-results').style.display = visible === 0 ? 'block' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Book with Dr. {{ doctor.name }} — MediCare{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="{{ url_for('user.dashboard') }}">Dashboard</a> ›
+      <a href="{{ url_for('appointments.select_doctor') }}">Book Appointment</a> ›
+      Dr. {{ doctor.name }}
+    </div>
+    <h1>Book Appointment</h1>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container book-layout">
+
+    <!-- Doctor info panel -->
+    <aside class="book-doctor-panel">
+      <div class="book-doctor-card">
+        <div class="doctor-avatar doctor-avatar-xl">{{ doctor.initials }}</div>
+        <h2 class="doctor-name">Dr. {{ doctor.name }}</h2>
+        <p class="doctor-spec">{{ doctor.specialization }}</p>
+        <p class="doctor-dept">{{ doctor.department }}</p>
+        {% if doctor.qualification %}
+          <p class="doctor-qual">{{ doctor.qualification }}</p>
+        {% endif %}
+        {% if doctor.experience_years %}
+          <div class="info-chip">{{ doctor.experience_years }} yrs experience</div>
+        {% endif %}
+        {% if doctor.bio %}
+          <p class="doctor-bio" style="margin-top: 12px">{{ doctor.bio }}</p>
+        {% endif %}
+        <div class="slot-legend">
+          <span>🕘 09:00 – 17:00</span>
+          <span>⏱ 30-min slots</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Booking form -->
+    <div class="book-form-panel">
+      <div class="card">
+        <h2 class="card-title">Select Date & Time</h2>
+
+        <form method="POST"
+              action="{{ url_for('appointments.book', doctor_id=doctor.id) }}"
+              id="book-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="form-group">
+            <label for="date">Appointment Date</label>
+            <input type="date" id="date" name="date" class="form-input"
+                   min="{{ today }}" required>
+            <span class="form-hint">Choose a future date (Mon – Sat)</span>
+          </div>
+
+          <div class="form-group">
+            <label for="time_slot">Available Time Slots</label>
+            <select id="time_slot" name="time_slot" class="form-input" required disabled>
+              <option value="">— select a date first —</option>
+            </select>
+            <div id="slot-loading" class="slot-loading" style="display:none">
+              <span class="spinner"></span> Checking availability…
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="reason">Reason for Visit <span class="optional">(optional)</span></label>
+            <textarea id="reason" name="reason" class="form-input form-textarea"
+                      placeholder="Briefly describe your symptoms or the purpose of your visit…"
+                      rows="3"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" id="submit-btn" disabled>
+            Confirm Appointment
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const doctorId = {{ doctor.id }};
+const dateInput = document.getElementById('date');
+const slotSelect = document.getElementById('time_slot');
+const loadingEl = document.getElementById('slot-loading');
+const submitBtn = document.getElementById('submit-btn');
+
+// Set min date to tomorrow
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+dateInput.min = tomorrow.toISOString().split('T')[0];
+
+dateInput.addEventListener('change', async function () {
+  const date = this.value;
+  if (!date) return;
+
+  slotSelect.disabled = true;
+  slotSelect.innerHTML = '<option value="">Loading…</option>';
+  loadingEl.style.display = 'flex';
+  submitBtn.disabled = true;
+
+  try {
+    const res = await fetch(`/appointments/slots/${doctorId}/${date}`);
+    const data = await res.json();
+    loadingEl.style.display = 'none';
+
+    if (data.slots && data.slots.length > 0) {
+      slotSelect.innerHTML = '<option value="">— Choose a slot —</option>';
+      data.slots.forEach(slot => {
+        const opt = document.createElement('option');
+        opt.value = slot;
+        // Convert 24h to 12h display
+        const [h, m] = slot.split(':');
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const display = `${hour % 12 || 12}:${m} ${ampm}`;
+        opt.textContent = display;
+        slotSelect.appendChild(opt);
+      });
+      slotSelect.disabled = false;
+    } else {
+      slotSelect.innerHTML = '<option value="">No slots available on this date</option>';
+    }
+  } catch (err) {
+    loadingEl.style.display = 'none';
+    slotSelect.innerHTML = '<option value="">Error loading slots — try again</option>';
+  }
+});
+
+slotSelect.addEventListener('change', function () {
+  submitBtn.disabled = !this.value;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Register — MediCare Hospital{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card auth-card-wide">
+    <div class="auth-logo">
+      <svg width="40" height="40" viewBox="0 0 28 28" fill="none">
+        <rect width="28" height="28" rx="8" fill="#1D4ED8"/>
+        <rect x="12" y="5" width="4" height="18" rx="2" fill="white"/>
+        <rect x="5" y="12" width="18" height="4" rx="2" fill="white"/>
+      </svg>
+    </div>
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-sub">Join MediCare and take charge of your health</p>
+
+    <form method="POST" action="{{ url_for('auth.register') }}" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="name">Full Name</label>
+          <input type="text" id="name" name="name" class="form-input"
+                 placeholder="Jane Doe" required autofocus
+                 value="{{ request.form.get('name', '') }}">
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number</label>
+          <input type="tel" id="phone" name="phone" class="form-input"
+                 placeholder="+91 98765 43210"
+                 value="{{ request.form.get('phone', '') }}">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" class="form-input"
+               placeholder="you@example.com" required
+               value="{{ request.form.get('email', '') }}">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-eye-wrap">
+            <input type="password" id="password" name="password" class="form-input"
+                   placeholder="Min. 8 characters" required>
+            <button type="button" class="eye-toggle" onclick="toggleEye('password', this)">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <div class="input-eye-wrap">
+            <input type="password" id="confirm_password" name="confirm_password"
+                   class="form-input" placeholder="Repeat password" required>
+            <button type="button" class="eye-toggle" onclick="toggleEye('confirm_password', this)">👁</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="form-hint">
+        A 6-digit verification code will be sent to your email after registration.
+      </p>
+
+      <button type="submit" class="btn btn-primary btn-full">Create Account & Send OTP</button>
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

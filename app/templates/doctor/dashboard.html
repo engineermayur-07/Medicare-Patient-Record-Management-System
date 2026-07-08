@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Doctor Dashboard — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-teal">{{ session.user_name[0].upper() }}</div>
+      <div>
+        <p class="sidebar-name">Dr. {{ session.user_name }}</p>
+        <p class="sidebar-role">{{ doctor.specialization }}</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('doctor.dashboard') }}"
+         class="sidebar-link active">🏠 Dashboard</a>
+      <a href="{{ url_for('doctor.appointments') }}"
+         class="sidebar-link">📋 Appointments</a>
+      <a href="{{ url_for('doctor.appointments') }}?status=pending"
+         class="sidebar-link">⏳ Pending
+        {% if pending_count > 0 %}
+          <span class="badge-count">{{ pending_count }}</span>
+        {% endif %}
+      </a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}"
+         class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">Good day, Dr. {{ doctor.name.split()[0] }}!</h1>
+        <p class="dash-sub">{{ doctor.department }} · {{ doctor.specialization }}</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card stat-card-blue">
+        <span class="stat-num-sm">{{ today_count }}</span>
+        <span class="stat-lbl">Today's Patients</span>
+      </div>
+      <div class="stat-card stat-card-amber">
+        <span class="stat-num-sm">{{ pending_count }}</span>
+        <span class="stat-lbl">Pending Confirmations</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num-sm">{{ total }}</span>
+        <span class="stat-lbl">Total Appointments</span>
+      </div>
+    </div>
+
+    <!-- Upcoming appointments -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <h2>Upcoming Appointments</h2>
+        <a href="{{ url_for('doctor.appointments') }}" class="link-sm">View all →</a>
+      </div>
+
+      {% if upcoming %}
+        <div class="appt-list">
+          {% for appt in upcoming %}
+            <div class="appt-card">
+              <div class="appt-avatar appt-avatar-green">
+                {{ appt.user.name[0].upper() }}
+              </div>
+              <div class="appt-info">
+                <p class="appt-doctor">{{ appt.user.name }}</p>
+                <p class="appt-spec">{{ appt.user.email }}
+                  {% if appt.user.phone %} · {{ appt.user.phone }}{% endif %}
+                </p>
+                <p class="appt-date">
+                  📅 {{ appt.date.strftime('%a, %d %b %Y') }} &nbsp; ⏰ {{ appt.time_slot }}
+                </p>
+                {% if appt.reason %}
+                  <p class="appt-reason"><em>{{ appt.reason }}</em></p>
+                {% endif %}
+              </div>
+              <div class="appt-status-col">
+                <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
+                {% if appt.status == 'pending' %}
+                  <form method="POST"
+                        action="{{ url_for('doctor.confirm_appointment', appt_id=appt.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-success" style="margin-top:6px">
+                      Confirm
+                    </button>
+                  </form>
+                {% endif %}
+                <a href="{{ url_for('records.upload', appointment_id=appt.id) }}"
+                   class="btn btn-sm btn-record" style="margin-top:6px">
+                  📎 Upload Record
+                </a>
+                <a href="{{ url_for('records.patient_history', user_id=appt.user_id) }}"
+                   class="btn-link" style="font-size:12px;margin-top:4px;display:block">
+                  View History
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state empty-sm">
+          <div class="empty-icon">🗓️</div>
+          <h3>No upcoming appointments</h3>
+          <p>You're all caught up!</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

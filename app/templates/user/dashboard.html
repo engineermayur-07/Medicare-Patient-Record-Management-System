@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">{{ session.user_name[0].upper() }}</div>
+      <div>
+        <p class="sidebar-name">{{ session.user_name }}</p>
+        <p class="sidebar-role">Patient</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('user.dashboard') }}"
+         class="sidebar-link active">🏠 Dashboard</a>
+      <a href="{{ url_for('appointments.select_doctor') }}"
+         class="sidebar-link">📅 Book Appointment</a>
+      <a href="{{ url_for('appointments.my_appointments') }}"
+         class="sidebar-link">📋 My Appointments</a>
+      <a href="{{ url_for('user.medical_history') }}"
+         class="sidebar-link">🗂️ Medical History</a>
+      <a href="{{ url_for('main.doctors') }}"
+         class="sidebar-link">👨‍⚕️ Our Doctors</a>
+      <a href="{{ url_for('main.services') }}"
+         class="sidebar-link">🏥 Services</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}"
+         class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">Welcome, {{ user.name.split()[0] }}!</h1>
+        <p class="dash-sub">Here's your health overview</p>
+      </div>
+      <a href="{{ url_for('appointments.select_doctor') }}" class="btn btn-primary">
+        + Book Appointment
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card stat-card-blue">
+        <span class="stat-num-sm">{{ total }}</span>
+        <span class="stat-lbl">Total Appointments</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num-sm">{{ upcoming|length }}</span>
+        <span class="stat-lbl">Upcoming</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num-sm">{{ past|length }}</span>
+        <span class="stat-lbl">Past Visits</span>
+      </div>
+      <div class="stat-card stat-card-teal">
+        <a href="{{ url_for('user.medical_history') }}" style="text-decoration:none;color:inherit">
+          <span class="stat-num-sm">{{ record_count }}</span>
+          <span class="stat-lbl">Medical Records</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Upcoming appointments -->
+    <div class="dash-section">
+      <div class="dash-section-header">
+        <h2>Upcoming Appointments</h2>
+        <a href="{{ url_for('appointments.my_appointments') }}" class="link-sm">View all →</a>
+      </div>
+
+      {% if upcoming %}
+        <div class="appt-list">
+          {% for appt in upcoming %}
+            <div class="appt-card">
+              <div class="appt-avatar">{{ appt.doctor.initials }}</div>
+              <div class="appt-info">
+                <p class="appt-doctor">Dr. {{ appt.doctor.name }}</p>
+                <p class="appt-spec">{{ appt.doctor.specialization }}</p>
+                <p class="appt-date">📅 {{ appt.date.strftime('%d %b %Y') }} &nbsp;⏰ {{ appt.time_slot }}</p>
+                {% if appt.reason %}
+                  <p class="appt-reason">{{ appt.reason[:60] }}{% if appt.reason|length > 60 %}…{% endif %}</p>
+                {% endif %}
+              </div>
+              <div class="appt-status-col">
+                <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
+                {% if appt.status in ['pending', 'confirmed'] %}
+                  <form method="POST"
+                        action="{{ url_for('appointments.cancel', appt_id=appt.id) }}"
+                        onsubmit="return confirm('Cancel this appointment?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-link-danger">Cancel</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state empty-sm">
+          <div class="empty-icon">📅</div>
+          <h3>No upcoming appointments</h3>
+          <p>Schedule time with one of our doctors today.</p>
+          <a href="{{ url_for('appointments.select_doctor') }}" class="btn btn-primary btn-sm">Book Now</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Past appointments -->
+    {% if past %}
+      <div class="dash-section">
+        <div class="dash-section-header">
+          <h2>Recent Visits</h2>
+        </div>
+        <div class="appt-list">
+          {% for appt in past %}
+            <div class="appt-card appt-card-muted">
+              <div class="appt-avatar appt-avatar-muted">{{ appt.doctor.initials }}</div>
+              <div class="appt-info">
+                <p class="appt-doctor">Dr. {{ appt.doctor.name }}</p>
+                <p class="appt-spec">{{ appt.doctor.specialization }}</p>
+                <p class="appt-date">📅 {{ appt.date.strftime('%d %b %Y') }} &nbsp;⏰ {{ appt.time_slot }}</p>
+              </div>
+              <div class="appt-status-col">
+                <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}
