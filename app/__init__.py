@@ -22,6 +22,7 @@ def create_app(config_class=Config):
     from .blueprints.doctor import doctor as doctor_bp
     from .blueprints.admin import admin as admin_bp
     from .blueprints.records import records as records_bp
+    from .blueprints.chatbot import chatbot as chatbot_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -30,6 +31,7 @@ def create_app(config_class=Config):
     app.register_blueprint(doctor_bp, url_prefix='/doctor')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(records_bp, url_prefix='/records')
+    app.register_blueprint(chatbot_bp, url_prefix='/user')
 
     # Ensure upload folder exists
     import os

@@ -30,3 +30,7 @@ class Config:
     ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@medicare.com')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'Admin@1234')
+
+    # Gemini health-summary assistant
+    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')

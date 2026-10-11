@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Health Assistant — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">{{ session.user_name[0].upper() }}</div>
+      <div>
+        <p class="sidebar-name">{{ session.user_name }}</p>
+        <p class="sidebar-role">Patient</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('user.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('appointments.select_doctor') }}" class="sidebar-link">📅 Book Appointment</a>
+      <a href="{{ url_for('appointments.my_appointments') }}" class="sidebar-link">📋 My Appointments</a>
+      <a href="{{ url_for('user.medical_history') }}" class="sidebar-link">🏥 Medical History</a>
+      <a href="{{ url_for('chatbot.page') }}" class="sidebar-link active">🤖 Health Assistant</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">Health Assistant</h1>
+        <p class="dash-sub">Ask about your appointments, notes, and documented treatment.</p>
+      </div>
+    </div>
+
+    <div class="form-card" style="max-width:800px">
+      <div id="chat-messages" class="chat-messages">
+        <div class="chat-message chat-message-assistant">
+          <div class="chat-message-label">Health Assistant</div>
+          <div class="chat-message-body">
+            Hi! What would you like to know about your health records?
+            <div class="chat-suggestions">
+              <button type="button" class="chat-suggestion">What are my upcoming appointments?</button>
+              <button type="button" class="chat-suggestion">What treatment has my doctor documented?</button>
+              <button type="button" class="chat-suggestion">Show my doctor's notes.</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form id="chat-form">
+        <input type="hidden" id="csrf-token" value="{{ csrf_token() }}">
+        <label for="chat-message">Your question</label>
+        <textarea id="chat-message" class="form-input form-textarea" rows="3"
+                  maxlength="2000"
+                  placeholder="For example: What treatment has been documented for me?"></textarea>
+        <button type="submit" id="chat-submit" class="btn btn-primary" style="margin-top:12px">
+          Ask Assistant
+        </button>
+      </form>
+      <p class="text-muted" style="margin-top:14px;font-size:12px">
+        Do not use this assistant for emergencies. Contact your doctor or local emergency services.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const chatForm = document.getElementById('chat-form');
+  const chatInput = document.getElementById('chat-message');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatSubmit = document.getElementById('chat-submit');
+
+  function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[character]));
+  }
+
+  function formatMarkdown(text) {
+    const lines = escapeHtml(text).split('\n');
+    let html = '';
+    let inList = false;
+
+    lines.forEach((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        if (inList) {
+          html += '</ul>';
+          inList = false;
+        }
+        return;
+      }
+
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (!inList) {
+          html += '<ul>';
+          inList = true;
+        }
+        html += '<li>' + trimmed.slice(2) + '</li>';
+        return;
+      }
+
+      if (inList) {
+        html += '</ul>';
+        inList = false;
+      }
+
+      if (trimmed.startsWith('### ')) {
+        html += '<h4>' + trimmed.slice(4) + '</h4>';
+      } else if (trimmed.startsWith('## ')) {
+        html += '<h3>' + trimmed.slice(3) + '</h3>';
+      } else if (trimmed.startsWith('# ')) {
+        html += '<h3>' + trimmed.slice(2) + '</h3>';
+      } else {
+        html += '<p>' + trimmed + '</p>';
+      }
+    });
+
+    if (inList) html += '</ul>';
+    return html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
+
+  function addMessage(label, text, type) {
+    const message = document.createElement('div');
+    message.className = 'chat-message chat-message-' + type;
+    message.innerHTML = '<div class="chat-message-label">' + label + '</div>' +
+      '<div class="chat-message-body">' +
+      (type === 'assistant' || type === 'error' ? formatMarkdown(text) : escapeHtml(text)) +
+      '</div>';
+    chatMessages.appendChild(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function useSuggestion(event) {
+    chatInput.value = event.currentTarget.textContent;
+    chatInput.focus();
+  }
+
+  document.querySelectorAll('.chat-suggestion').forEach((button) => {
+    button.addEventListener('click', useSuggestion);
+  });
+
+  chatForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    addMessage('You', message, 'user');
+    chatInput.value = '';
+    chatSubmit.disabled = true;
+    chatSubmit.textContent = 'Thinking...';
+
+    try {
+      const response = await fetch('{{ url_for("chatbot.message") }}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.getElementById('csrf-token').value
+        },
+        body: JSON.stringify({message})
+      });
+      const result = await response.json();
+      addMessage(response.ok ? 'Health Assistant' : 'Error',
+                 result.answer || result.error || 'Unable to get a response.',
+                 response.ok ? 'assistant' : 'error');
+    } catch (error) {
+      addMessage('Error', 'Unable to contact the assistant. Please try again.', 'flash flash-danger');
+    } finally {
+      chatSubmit.disabled = false;
+      chatSubmit.textContent = 'Ask Assistant';
+    }
+  });
+</script>
+{% endblock %}

@@ -40,6 +40,7 @@
       {% if role == 'user' %}
         <a href="{{ url_for('user.dashboard') }}" class="nav-link">Dashboard</a>
         <a href="{{ url_for('appointments.my_appointments') }}" class="nav-link">My Appointments</a>
+        <a href="{{ url_for('chatbot.page') }}" class="nav-link">Health Assistant</a>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sm">Logout</a>
       {% elif role == 'doctor' %}
         <a href="{{ url_for('doctor.dashboard') }}" class="nav-link">Portal</a>

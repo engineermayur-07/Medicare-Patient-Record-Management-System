@@ -465,6 +465,80 @@ select.form-input { cursor: pointer; }
 .text-muted  { color: var(--text-muted); }
 .no-results  { text-align: center; color: var(--text-muted); padding: 32px; font-size: 15px; }
 
+/* Patient health assistant */
+.chat-messages {
+  min-height: 260px;
+  max-height: 520px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 4px;
+}
+.chat-message {
+  max-width: 92%;
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  line-height: 1.55;
+}
+.chat-message-user {
+  margin-left: auto;
+  background: #DBEAFE;
+  border: 1px solid #93C5FD;
+  color: #1E3A8A;
+}
+.chat-message-assistant {
+  margin-right: auto;
+  background: #ECFDF5;
+  border: 1px solid #86EFAC;
+  color: #14532D;
+}
+.chat-message-error {
+  margin-right: auto;
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+}
+.chat-message-label {
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.chat-message-body p {
+  margin: 0 0 10px;
+}
+.chat-message-body p:last-child {
+  margin-bottom: 0;
+}
+.chat-message-body h3,
+.chat-message-body h4 {
+  margin: 4px 0 10px;
+}
+.chat-message-body ul {
+  margin: 6px 0 10px;
+  padding-left: 22px;
+}
+.chat-message-body li {
+  margin: 4px 0;
+}
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.chat-suggestion {
+  border: 1px solid #86EFAC;
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: #fff;
+  color: #166534;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+.chat-suggestion:hover {
+  background: #DCFCE7;
+}
+
 /* ═══════════════ RESPONSIVE ═══════════════ */
 @media (max-width: 900px) {
   .hero-inner { flex-direction: column; padding: 56px 24px 60px; }
