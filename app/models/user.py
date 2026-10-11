@@ -1,6 +1,7 @@
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 from app.extensions import db
+from app.utils.passwords import verify_password
 
 
 class User(db.Model):
@@ -22,7 +23,7 @@ class User(db.Model):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return verify_password(self.password_hash, password)
 
     def __repr__(self):
         return f'<User {self.email}>'

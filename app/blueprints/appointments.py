@@ -48,8 +48,31 @@ def book(doctor_id):
             flash('That time slot is no longer available. Please choose another.', 'warning')
             return render_template('appointments/book.html', doctor=doctor)
 
+        user_id = session['user_id']
+        active_statuses = ['pending', 'confirmed']
+
+        same_doctor_same_day = Appointment.query.filter(
+            Appointment.user_id == user_id,
+            Appointment.doctor_id == doctor_id,
+            Appointment.date == appt_date,
+            Appointment.status.in_(active_statuses),
+        ).first()
+        if same_doctor_same_day:
+            flash('You already have an appointment with this doctor on that day.', 'warning')
+            return render_template('appointments/book.html', doctor=doctor)
+
+        another_doctor_same_time = Appointment.query.filter(
+            Appointment.user_id == user_id,
+            Appointment.date == appt_date,
+            Appointment.time_slot == time_slot,
+            Appointment.status.in_(active_statuses),
+        ).first()
+        if another_doctor_same_time:
+            flash('You already have another appointment at that date and time.', 'warning')
+            return render_template('appointments/book.html', doctor=doctor)
+
         appt = Appointment(
-            user_id=session['user_id'],
+            user_id=user_id,
             doctor_id=doctor_id,
             date=appt_date,
             time_slot=time_slot,
@@ -107,8 +130,8 @@ def cancel(appt_id):
     appt = Appointment.query.get_or_404(appt_id)
     if appt.user_id != session['user_id']:
         abort(403)
-    if appt.status not in ('pending', 'confirmed'):
-        flash('This appointment cannot be cancelled.', 'warning')
+    if appt.date <= date.today() or appt.status not in ('pending', 'confirmed'):
+        flash('Only upcoming pending or confirmed appointments can be cancelled.', 'warning')
         return redirect(url_for('appointments.my_appointments'))
     appt.status = 'cancelled'
     db.session.commit()
