@@ -24,7 +24,7 @@ The project uses:
 | Styling | CSS | Controls appearance and responsive layout |
 | Browser behavior | JavaScript | Handles menus, date slots, file previews, and AJAX |
 | Database migrations | Flask-Migrate + Alembic | Creates and updates database tables |
-| Email | Python `smtplib` | Sends OTP verification emails |
+| Email | Resend API via Python `requests` | Sends OTP verification and fee reminder emails |
 
 This is a **server-rendered full-stack application**. It does not use React, Vue, or a separate frontend API.
 
@@ -1369,8 +1369,8 @@ Important configuration values:
 ```text
 SQLALCHEMY_DATABASE_URI
 SECRET_KEY
-MAIL_USERNAME
-MAIL_APP_PASSWORD
+RESEND_API_KEY
+RESEND_FROM_EMAIL
 UPLOAD_FOLDER
 MAX_CONTENT_LENGTH
 ALLOWED_EXTENSIONS
@@ -1521,4 +1521,3 @@ Controllers → Flask blueprint route functions
 ```
 
 In this project, the route functions act as the controller layer, the SQLAlchemy classes are the model layer, and the templates are the view layer.
-

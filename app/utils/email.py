@@ -1,24 +1,46 @@
-import smtplib
 from html import escape
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+
+import requests
 from flask import current_app
+
+
+RESEND_API_URL = 'https://api.resend.com/emails'
+
+
+def _send_email(to_email: str, subject: str, text_body: str, html_body: str) -> bool:
+    """Send an email through Resend. Returns True on success, False on failure."""
+    api_key = current_app.config['RESEND_API_KEY']
+    from_email = current_app.config['RESEND_FROM_EMAIL']
+
+    if not api_key or not from_email:
+        current_app.logger.error('Resend email configuration is incomplete.')
+        return False
+
+    try:
+        response = requests.post(
+            RESEND_API_URL,
+            headers={
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'from': from_email,
+                'to': [to_email],
+                'subject': subject,
+                'text': text_body,
+                'html': html_body,
+            },
+            timeout=15,
+        )
+        response.raise_for_status()
+        return True
+    except requests.RequestException as e:
+        current_app.logger.error(f'Failed to send email through Resend: {e}')
+        return False
 
 
 def send_otp_email(to_email: str, otp_code: str, user_name: str) -> bool:
     """Send OTP verification email. Returns True on success, False on failure."""
-    username = current_app.config['MAIL_USERNAME']
-    password = current_app.config['MAIL_APP_PASSWORD']
-
-    if not username or not password:
-        current_app.logger.error('SMTP credentials not configured.')
-        return False
-
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'MediCare — Verify Your Email'
-    msg['From'] = f'MediCare Hospital <{username}>'
-    msg['To'] = to_email
-
     html_body = f"""
     <!DOCTYPE html>
     <html>
@@ -77,31 +99,16 @@ def send_otp_email(to_email: str, otp_code: str, user_name: str) -> bool:
         f"If you did not register, ignore this email.\n"
     )
 
-    msg.attach(MIMEText(text_body, 'plain'))
-    msg.attach(MIMEText(html_body, 'html'))
-
-    try:
-        with smtplib.SMTP(current_app.config['MAIL_SERVER'],
-                          current_app.config['MAIL_PORT']) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(username, password)
-            server.sendmail(username, to_email, msg.as_string())
-        return True
-    except Exception as e:
-        current_app.logger.error(f'Failed to send OTP email: {e}')
-        return False
+    return _send_email(
+        to_email,
+        'MediCare — Verify Your Email',
+        text_body,
+        html_body,
+    )
 
 
 def send_fee_reminder_email(to_email: str, user_name: str, payments) -> bool:
     """Send a reminder for the patient's unpaid fees."""
-    username = current_app.config['MAIL_USERNAME']
-    password = current_app.config['MAIL_APP_PASSWORD']
-
-    if not username or not password:
-        current_app.logger.error('SMTP credentials not configured.')
-        return False
-
     total = sum(payment.amount for payment in payments)
     rows = ''.join(
         f'<tr><td>{escape(payment.description)}</td>'
@@ -135,21 +142,9 @@ def send_fee_reminder_email(to_email: str, user_name: str, payments) -> bool:
         'Please sign in to your MediCare account to complete payment.\n'
     )
 
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = 'MediCare — Pending Fee Reminder'
-    msg['From'] = f'MediCare Hospital <{username}>'
-    msg['To'] = to_email
-    msg.attach(MIMEText(text_body, 'plain'))
-    msg.attach(MIMEText(html_body, 'html'))
-
-    try:
-        with smtplib.SMTP(current_app.config['MAIL_SERVER'],
-                          current_app.config['MAIL_PORT']) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(username, password)
-            server.sendmail(username, to_email, msg.as_string())
-        return True
-    except Exception as e:
-        current_app.logger.error(f'Failed to send fee reminder email: {e}')
-        return False
+    return _send_email(
+        to_email,
+        'MediCare — Pending Fee Reminder',
+        text_body,
+        html_body,
+    )

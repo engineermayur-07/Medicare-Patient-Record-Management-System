@@ -12,12 +12,12 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'postgresql://localhost/medicare_db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # SMTP
-    MAIL_SERVER = 'smtp.gmail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
-    MAIL_USERNAME = os.getenv('MAIL_USERNAME')
-    MAIL_APP_PASSWORD = os.getenv('MAIL_APP_PASSWORD')
+    # Resend email API
+    RESEND_API_KEY = os.getenv('RESEND_API_KEY')
+    RESEND_FROM_EMAIL = os.getenv(
+        'RESEND_FROM_EMAIL',
+        'MediCare Hospital <onboarding@resend.dev>',
+    )
 
     # OTP expiry in minutes
     OTP_EXPIRY_MINUTES = 10
