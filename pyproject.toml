@@ -2,7 +2,17 @@
 name = "medicare-app"
 version = "0.1.0"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "Flask",
+    "Flask-Migrate",
+    "Flask-SQLAlchemy",
+    "Flask-WTF",
+    "psycopg2-binary",
+    "python-dotenv",
+    "requests",
+    "gunicorn",
+    "psycopg",
+]
 
 [tool.vercel]
 entrypoint = "run:app"
