@@ -13,6 +13,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     phone = db.Column(db.String(15))
     dob = db.Column(db.Date)
+    profile_photo_path = db.Column(db.String(500))
+    medical_conditions = db.Column(db.Text)
     is_verified = db.Column(db.Boolean, default=False, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

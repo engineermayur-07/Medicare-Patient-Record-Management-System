@@ -12,7 +12,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
 
     # Import models so Alembic can detect them
-    from .models import user, doctor, admin, otp, appointment, service, medical_record  # noqa: F401
+    from .models import user, doctor, admin, otp, appointment, service, medical_record, payment  # noqa: F401
 
     # Register blueprints
     from .blueprints.main import main as main_bp
@@ -22,6 +22,7 @@ def create_app(config_class=Config):
     from .blueprints.doctor import doctor as doctor_bp
     from .blueprints.admin import admin as admin_bp
     from .blueprints.records import records as records_bp
+    from .blueprints.payments import payments as payments_bp
     from .blueprints.chatbot import chatbot as chatbot_bp
 
     app.register_blueprint(main_bp)
@@ -31,6 +32,7 @@ def create_app(config_class=Config):
     app.register_blueprint(doctor_bp, url_prefix='/doctor')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(records_bp, url_prefix='/records')
+    app.register_blueprint(payments_bp, url_prefix='/payments')
     app.register_blueprint(chatbot_bp, url_prefix='/user')
 
     # Ensure upload folder exists

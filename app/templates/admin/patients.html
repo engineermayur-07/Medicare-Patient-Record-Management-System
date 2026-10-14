@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Patients — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-red">A</div>
+      <div><p class="sidebar-name">{{ session.user_name }}</p><p class="sidebar-role">Administrator</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.patients') }}" class="sidebar-link active">👥 Patients</a>
+      <a href="{{ url_for('admin.add_medical_fee') }}" class="sidebar-link">💳 Medical Fees</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <div class="dash-main">
+    <div class="dash-topbar"><h1 class="dash-title">Patients</h1></div>
+    {% if patients %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Verified</th><th>Action</th></tr></thead>
+          <tbody>
+          {% for patient in patients %}
+            <tr>
+              <td>{{ patient.name }}</td>
+              <td>{{ patient.email }}</td>
+              <td>{{ patient.phone or '—' }}</td>
+              <td>{{ 'Yes' if patient.is_verified else 'No' }}</td>
+              <td><a class="btn btn-sm btn-outline"
+                     href="{{ url_for('admin.patient_details', user_id=patient.id) }}">View Details</a></td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-muted">No patients registered yet.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

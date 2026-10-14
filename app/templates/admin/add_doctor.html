@@ -61,10 +61,11 @@
           <label for="password">Login Password <span class="req">*</span></label>
           <div class="input-eye-wrap">
             <input type="password" id="password" name="password" class="form-input"
-                   placeholder="Min. 8 characters" required>
+                   placeholder="8+ chars, upper/lower/number/symbol" required
+                   minlength="8">
             <button type="button" class="eye-toggle" onclick="toggleEye('password', this)">👁</button>
           </div>
-          <span class="form-hint">The doctor will use this to log in.</span>
+          <span class="form-hint">Use uppercase, lowercase, a number, and a symbol.</span>
         </div>
 
         <div class="form-row">

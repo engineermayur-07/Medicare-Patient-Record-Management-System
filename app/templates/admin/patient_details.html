@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}{{ patient.name }} — Patient Details{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-red">A</div>
+      <div><p class="sidebar-name">{{ session.user_name }}</p><p class="sidebar-role">Administrator</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.patients') }}" class="sidebar-link active">👥 Patients</a>
+      <a href="{{ url_for('admin.add_medical_fee') }}" class="sidebar-link">💳 Medical Fees</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">{{ patient.name }}</h1>
+        <p class="dash-sub">{{ patient.email }} · {{ patient.phone or 'No phone' }}</p>
+      </div>
+      {% set unpaid = payments|selectattr('status', 'in', ['pending', 'failed'])|list %}
+      {% if unpaid %}
+        <form method="POST" action="{{ url_for('admin.remind_fees', user_id=patient.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-primary"
+                  onclick="return confirm('Send a fee reminder email to this patient?')">
+            Send Fee Reminder
+          </button>
+        </form>
+      {% endif %}
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-num-sm">{{ appointments|length }}</span><span class="stat-lbl">Appointments</span></div>
+      <div class="stat-card stat-card-teal"><span class="stat-num-sm">{{ records|length }}</span><span class="stat-lbl">Medical Records</span></div>
+      <div class="stat-card stat-card-amber"><span class="stat-num-sm">{{ unpaid|length }}</span><span class="stat-lbl">Unpaid Fees</span></div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-header"><h2>Patient Information</h2></div>
+      <div class="card">
+        <p><strong>Name:</strong> {{ patient.name }}</p>
+        <p><strong>Email:</strong> {{ patient.email }}</p>
+        <p><strong>Phone:</strong> {{ patient.phone or 'Not provided' }}</p>
+        <p><strong>Date of birth:</strong> {{ patient.dob or 'Not provided' }}</p>
+        <p><strong>Medical conditions:</strong> {{ patient.medical_conditions or 'Not provided' }}</p>
+        <p><strong>Email verified:</strong> {{ 'Yes' if patient.is_verified else 'No' }}</p>
+        <p><strong>Registered:</strong> {{ patient.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+        {% if patient.profile_photo_path %}
+          <p><strong>Profile photo:</strong></p>
+          <img class="admin-profile-photo"
+               src="{{ url_for('admin.patient_photo', user_id=patient.id) }}"
+               alt="{{ patient.name }}'s profile photo">
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-header"><h2>Appointments</h2></div>
+      {% if appointments %}
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Date</th><th>Doctor</th><th>Reason</th><th>Doctor Notes</th><th>Status</th></tr></thead>
+          <tbody>{% for appt in appointments %}<tr>
+            <td>{{ appt.date.strftime('%d %b %Y') }}<br>{{ appt.time_slot }}</td>
+            <td>Dr. {{ appt.doctor.name }}<br><small>{{ appt.doctor.specialization }}</small></td>
+            <td>{{ appt.reason or '—' }}</td><td>{{ appt.notes or '—' }}</td>
+            <td><span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+      {% else %}<p class="text-muted">No appointments.</p>{% endif %}
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-header"><h2>Medical Records</h2></div>
+      {% if records %}
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Date</th><th>Type</th><th>Title</th><th>Doctor</th><th>Notes</th></tr></thead>
+          <tbody>{% for record in records %}<tr>
+            <td>{{ record.created_at.strftime('%d %b %Y') }}</td>
+            <td>{{ record.type_label }}</td>
+            <td>{{ record.title }}
+              {% if record.has_file %}
+                <br><a href="{{ url_for('records.view_inline', record_id=record.id) }}"
+                       target="_blank" rel="noopener">View attachment</a>
+              {% endif %}
+            </td>
+            <td>Dr. {{ record.uploader.name }}</td><td>{{ record.notes or '—' }}</td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+      {% else %}<p class="text-muted">No medical records.</p>{% endif %}
+    </div>
+
+    <div class="dash-section">
+      <div class="dash-section-header"><h2>Payments</h2></div>
+      {% if payments %}
+        <div class="table-wrap"><table class="data-table">
+          <thead><tr><th>Description</th><th>Amount</th><th>Status</th><th>Paid At</th></tr></thead>
+          <tbody>{% for payment in payments %}<tr>
+            <td>{{ payment.description }}</td><td>{{ payment.currency }} {{ '%.2f'|format(payment.amount) }}</td>
+            <td>{{ payment.status|title }}</td><td>{{ payment.paid_at or '—' }}</td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+      {% else %}<p class="text-muted">No payments.</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

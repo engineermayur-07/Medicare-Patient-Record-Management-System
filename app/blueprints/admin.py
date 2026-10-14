@@ -1,10 +1,17 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+import os
+
+from flask import (Blueprint, abort, flash, redirect, render_template, request,
+                   send_file, url_for)
 from app.extensions import db
 from app.models.doctor import Doctor
 from app.models.user import User
 from app.models.appointment import Appointment
 from app.models.service import Service
+from app.models.payment import Payment
+from app.models.medical_record import MedicalRecord
 from app.utils.decorators import admin_required
+from app.utils.email import send_fee_reminder_email
+from app.utils.validation import parse_medical_fee, validate_password_strength
 
 admin = Blueprint('admin', __name__)
 
@@ -36,6 +43,106 @@ def dashboard():
                            recent_appts=recent_appts)
 
 
+@admin.route('/patients')
+@admin_required
+def patients():
+    all_patients = User.query.order_by(User.name).all()
+    return render_template('admin/patients.html', patients=all_patients)
+
+
+@admin.route('/patients/<int:user_id>')
+@admin_required
+def patient_details(user_id):
+    patient = User.query.get_or_404(user_id)
+    appointments = (
+        Appointment.query.filter_by(user_id=user_id)
+        .order_by(Appointment.date.desc(), Appointment.time_slot.desc()).all()
+    )
+    records = (
+        MedicalRecord.query.filter_by(user_id=user_id)
+        .order_by(MedicalRecord.created_at.desc()).all()
+    )
+    payments = (
+        Payment.query.filter_by(user_id=user_id)
+        .order_by(Payment.created_at.desc()).all()
+    )
+    return render_template(
+        'admin/patient_details.html',
+        patient=patient,
+        appointments=appointments,
+        records=records,
+        payments=payments,
+    )
+
+
+@admin.route('/patients/<int:user_id>/photo')
+@admin_required
+def patient_photo(user_id):
+    patient = User.query.get_or_404(user_id)
+    if not patient.profile_photo_path or not os.path.exists(patient.profile_photo_path):
+        abort(404)
+    return send_file(patient.profile_photo_path)
+
+
+@admin.route('/patients/<int:user_id>/remind-fees', methods=['POST'])
+@admin_required
+def remind_fees(user_id):
+    patient = User.query.get_or_404(user_id)
+    unpaid_fees = Payment.query.filter(
+        Payment.user_id == user_id,
+        Payment.status.in_(['pending', 'failed']),
+    ).order_by(Payment.created_at.desc()).all()
+
+    if not unpaid_fees:
+        flash('This patient has no unpaid fees.', 'info')
+        return redirect(url_for('admin.patient_details', user_id=user_id))
+
+    if send_fee_reminder_email(patient.email, patient.name, unpaid_fees):
+        flash(f'Fee reminder sent to {patient.email}.', 'success')
+    else:
+        flash('The fee reminder could not be sent. Check the email configuration.', 'danger')
+    return redirect(url_for('admin.patient_details', user_id=user_id))
+
+
+@admin.route('/fees/add', methods=['GET', 'POST'])
+@admin_required
+def add_medical_fee():
+    users = User.query.order_by(User.name).all()
+    if request.method == 'POST':
+        user_id = request.form.get('user_id', type=int)
+        description = request.form.get('description', '').strip()
+        raw_amount = request.form.get('amount', '').strip()
+
+        amount, amount_error = parse_medical_fee(raw_amount)
+
+        if not user_id or not description:
+            flash('Patient and fee description are required.', 'danger')
+            return render_template('admin/add_fee.html', users=users)
+        if len(description) > 255:
+            flash('Fee description must be 255 characters or fewer.', 'danger')
+            return render_template('admin/add_fee.html', users=users)
+        if amount_error:
+            flash(amount_error, 'danger')
+            return render_template('admin/add_fee.html', users=users)
+
+        user = User.query.get(user_id)
+        if not user:
+            flash('Selected patient was not found.', 'danger')
+            return render_template('admin/add_fee.html', users=users)
+
+        db.session.add(Payment(
+            user_id=user.id,
+            fee_type='medical_fee',
+            description=description,
+            amount=amount,
+        ))
+        db.session.commit()
+        flash(f'Medical fee created for {user.name}.', 'success')
+        return redirect(url_for('admin.add_medical_fee'))
+
+    return render_template('admin/add_fee.html', users=users)
+
+
 # ─────────────────────────── Doctors ─────────────────────────────────
 
 @admin.route('/doctors')
@@ -62,6 +169,11 @@ def add_doctor():
 
         if not all([name, email, password, specialization, department]):
             flash('Name, email, password, specialization and department are required.', 'danger')
+            return render_template('admin/add_doctor.html', departments=DEPARTMENTS)
+
+        password_error = validate_password_strength(password)
+        if password_error:
+            flash(password_error, 'danger')
             return render_template('admin/add_doctor.html', departments=DEPARTMENTS)
 
         if Doctor.query.filter_by(email=email).first():

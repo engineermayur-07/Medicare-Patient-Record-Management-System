@@ -37,6 +37,8 @@
             <div class="appt-status-col">
               <span class="badge {{ appt.status_badge }}">{{ appt.status|title }}</span>
               {% if appt.status in ['pending', 'confirmed'] %}
+                <a href="{{ url_for('payments.pay_appointment', appointment_id=appt.id) }}"
+                   class="btn-link" style="margin-top:8px;display:block">Pay Fee</a>
                 <form method="POST"
                       action="{{ url_for('appointments.cancel', appt_id=appt.id) }}"
                       onsubmit="return confirm('Cancel this appointment?')">

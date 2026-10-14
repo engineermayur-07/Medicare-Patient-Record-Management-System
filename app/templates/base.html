@@ -39,7 +39,9 @@
       {% set role = session.get('user_role') %}
       {% if role == 'user' %}
         <a href="{{ url_for('user.dashboard') }}" class="nav-link">Dashboard</a>
+        <a href="{{ url_for('user.profile') }}" class="nav-link">Profile</a>
         <a href="{{ url_for('appointments.my_appointments') }}" class="nav-link">My Appointments</a>
+        <a href="{{ url_for('payments.index') }}" class="nav-link">Payments</a>
         <a href="{{ url_for('chatbot.page') }}" class="nav-link">Health Assistant</a>
         <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-sm">Logout</a>
       {% elif role == 'doctor' %}
@@ -120,13 +122,13 @@
     <h3 style="font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: #888888; margin-bottom: 8px; font-weight: 600;">Designed and Developed By</h3>
     
     <h2 style="font-size: 24px; color: #2c3e50; margin: 0 0 20px 0; font-weight: 400; line-height: 1.4;">
-        <strong style="color: #007bff; font-weight: 700;">Mayur B. Gund</strong><br>
-        <span style="font-size: 16px; color: #5a6268;">Full Stack Developer</span>
+        <strong style="color: #007bff; font-weight: 700;">Team CareConnect</strong><br>
+        <span style="font-size: 16px; color: #5a6268;">Software Developers</span>
     </h2>
     
     <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
     
-    <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px; font-weight: 500;">Connect with me:</p>
+    <p style="font-size: 14px; color: #6c757d; margin-bottom: 15px; font-weight: 500;">Connect with us:</p>
     
     <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
         <a href="mailto:mgund1920@gmail.com" style="padding: 8px 16px; font-size: 14px; font-weight: 500; color: #ffffff; background-color: #dc3545; text-decoration: none; border-radius: 6px; transition: background 0.2s;">Email</a>

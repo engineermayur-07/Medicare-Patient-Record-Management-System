@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% block title %}Pay {{ payment.description }} — MediCare{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:600px">
+    <div class="card">
+      <h1 class="card-title">Complete Payment</h1>
+      <p>{{ payment.description }}</p>
+      <p class="amount" style="font-size:28px;font-weight:700">
+        {{ payment.currency }} {{ '%.2f'|format(payment.amount) }}
+      </p>
+      <div class="payment-secure-note">🔒 Secure payment</div>
+
+      <div class="payment-methods">
+        <button type="button" class="payment-method active" data-method="card">
+          <span>💳</span><strong>Card</strong><small>Credit or debit card</small>
+        </button>
+        <button type="button" class="payment-method" data-method="upi">
+          <span>📱</span><strong>UPI</strong><small>UPI ID</small>
+        </button>
+        <button type="button" class="payment-method" data-method="qr">
+          <span>▦</span><strong>QR Code</strong><small>Scan to pay</small>
+        </button>
+        <button type="button" class="payment-method" data-method="netbanking">
+          <span>🏦</span><strong>Net Banking</strong><small>All major banks</small>
+        </button>
+      </div>
+
+      <div id="method-panel" class="payment-method-panel"></div>
+      <div id="payment-message" class="form-hint" style="margin:12px 0"></div>
+      <button id="pay-button" class="btn btn-primary btn-full">Pay Securely</button>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const csrfToken = '{{ csrf_token() }}';
+  const message = document.getElementById('payment-message');
+  const payButton = document.getElementById('pay-button');
+  const methodPanel = document.getElementById('method-panel');
+  const methodButtons = document.querySelectorAll('.payment-method');
+  let selectedMethod = 'card';
+  let paymentOrderId = null;
+
+  const methodContent = {
+    card: `
+      <label>Card number</label>
+      <input class="form-input payment-detail" inputmode="numeric"
+             id="card-number" placeholder="4111 1111 1111 1111" maxlength="19">
+      <div class="payment-fields">
+        <input class="form-input payment-detail" id="card-expiry"
+               placeholder="MM/YY" maxlength="5">
+        <input class="form-input payment-detail" id="card-cvv"
+               placeholder="CVV" maxlength="4" type="password">
+      </div>`,
+    upi: `
+      <label>UPI ID</label>
+      <input class="form-input payment-detail" id="upi-id" placeholder="name@bank"
+             autocomplete="off">`,
+    qr: `
+      <div class="payment-qr">▦</div>
+      <p class="form-hint">Open your UPI app and scan the QR code to continue.</p>
+      <label><input type="checkbox" id="qr-confirmed"> I completed the QR payment</label>`,
+    netbanking: `
+      <label>Select your bank</label>
+      <select class="form-input payment-detail" id="bank">
+        <option value="">Choose a bank</option>
+        <option>State Bank of India</option>
+        <option>HDFC Bank</option>
+        <option>ICICI Bank</option>
+        <option>Axis Bank</option>
+        <option>Other bank</option>
+      </select>`
+  };
+
+  function selectMethod(method) {
+    selectedMethod = method;
+    methodButtons.forEach((button) => {
+      button.classList.toggle('active', button.dataset.method === method);
+    });
+    methodPanel.innerHTML = methodContent[method];
+  }
+
+  async function requestJson(url, body) {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+      body: JSON.stringify(body)
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Payment request failed.');
+    return result;
+  }
+
+  async function createOrder() {
+    if (paymentOrderId) return paymentOrderId;
+    const result = await requestJson('{{ url_for("payments.api_create_order") }}', {
+      payment_id: {{ payment.id }}
+    });
+    paymentOrderId = result.order_id;
+    return paymentOrderId;
+  }
+
+  async function confirmPayment(outcome) {
+    const details = getPaymentDetails();
+    if (outcome === 'success' && !details.valid) {
+      message.textContent = details.error;
+      return;
+    }
+    payButton.disabled = true;
+    message.textContent = 'Processing payment...';
+    try {
+      const orderId = await createOrder();
+      const result = await requestJson('{{ url_for("payments.api_confirm") }}', {
+        payment_id: {{ payment.id }},
+        order_id: orderId,
+        outcome,
+        method: selectedMethod,
+        details: details.values
+      });
+      if (result.receipt_url) {
+        window.location.href = result.receipt_url;
+      } else {
+        message.textContent = result.message;
+        payButton.disabled = false;
+      }
+
+      function getPaymentDetails() {
+        if (selectedMethod === 'card') {
+          const cardNumber = document.getElementById('card-number').value.trim();
+          const expiry = document.getElementById('card-expiry').value.trim();
+          const cvv = document.getElementById('card-cvv').value.trim();
+          return {
+            valid: Boolean(cardNumber && expiry && cvv),
+            error: 'Enter card number, expiry date, and CVV.',
+            values: {
+              card_number: cardNumber,
+              expiry,
+              cvv
+            }
+          };
+        }
+        if (selectedMethod === 'upi') {
+          const upiId = document.getElementById('upi-id').value.trim();
+          return {
+            valid: Boolean(upiId),
+            error: 'Enter your UPI ID.',
+            values: {upi_id: upiId}
+          };
+        }
+        if (selectedMethod === 'qr') {
+          const confirmed = document.getElementById('qr-confirmed').checked;
+          return {
+            valid: confirmed,
+            error: 'Confirm that you completed the QR payment.',
+            values: {confirmed}
+          };
+        }
+        const bank = document.getElementById('bank').value;
+        return {
+          valid: Boolean(bank),
+          error: 'Select your bank.',
+          values: {bank}
+        };
+      }
+    } catch (error) {
+      message.textContent = error.message;
+      payButton.disabled = false;
+    }
+  }
+
+  methodButtons.forEach((button) => {
+    button.addEventListener('click', () => selectMethod(button.dataset.method));
+  });
+  payButton.addEventListener('click', () => confirmPayment('success'));
+  selectMethod('card');
+</script>
+{% endblock %}

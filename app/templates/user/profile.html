@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      {% if user.profile_photo_path %}
+        <img class="sidebar-avatar profile-photo-small"
+             src="{{ url_for('user.profile_photo') }}" alt="Profile photo">
+      {% else %}
+        <div class="sidebar-avatar">{{ user.name[0].upper() }}</div>
+      {% endif %}
+      <div>
+        <p class="sidebar-name">{{ user.name }}</p>
+        <p class="sidebar-role">Patient</p>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('user.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('user.profile') }}" class="sidebar-link active">👤 My Profile</a>
+      <a href="{{ url_for('appointments.select_doctor') }}" class="sidebar-link">📅 Book Appointment</a>
+      <a href="{{ url_for('appointments.my_appointments') }}" class="sidebar-link">📋 My Appointments</a>
+      <a href="{{ url_for('user.medical_history') }}" class="sidebar-link">🏥 Medical History</a>
+      <a href="{{ url_for('chatbot.page') }}" class="sidebar-link">🤖 Health Assistant</a>
+      <hr class="sidebar-hr">
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div>
+        <h1 class="dash-title">My Profile</h1>
+        <p class="dash-sub">Keep your personal and medical information up to date.</p>
+      </div>
+    </div>
+
+    <div class="card profile-card">
+      <div class="profile-header">
+        {% if user.profile_photo_path %}
+          <img class="profile-photo" src="{{ url_for('user.profile_photo') }}" alt="Profile photo">
+        {% else %}
+          <div class="profile-photo profile-photo-placeholder">{{ user.name[0].upper() }}</div>
+        {% endif %}
+        <div>
+          <h2>{{ user.name }}</h2>
+          <p class="text-muted">{{ user.email }}</p>
+        </div>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label for="dob">Date of birth</label>
+          <input id="dob" name="dob" type="date" class="form-input"
+                 value="{{ user.dob.isoformat() if user.dob else '' }}"
+                 min="1960-01-01" max="2015-12-31">
+        </div>
+        <div class="form-group">
+          <label for="profile_photo">Profile photo</label>
+          <input id="profile_photo" name="profile_photo" type="file"
+                 class="form-input" accept=".png,.jpg,.jpeg,image/png,image/jpeg">
+          <span class="form-hint">PNG, JPG, or JPEG only.</span>
+        </div>
+        <div class="form-group">
+          <label for="medical_conditions">Specific medical conditions</label>
+          <textarea id="medical_conditions" name="medical_conditions"
+                    class="form-input form-textarea" rows="5"
+                    placeholder="List any diagnosed conditions, allergies, or other important information...">{{ user.medical_conditions or '' }}</textarea>
+          <span class="form-hint">Only add information you are comfortable sharing with your care team.</span>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Profile</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

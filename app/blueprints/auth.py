@@ -7,6 +7,7 @@ from app.utils.helpers import create_otp
 from app.utils.helpers import verify_otp as check_otp
 from app.utils.email import send_otp_email
 from app.utils.decorators import guest_only
+from app.utils.validation import validate_password_strength
 
 auth = Blueprint('auth', __name__)
 
@@ -32,8 +33,9 @@ def register():
             flash('Passwords do not match.', 'danger')
             return render_template('auth/register.html')
 
-        if len(password) < 8:
-            flash('Password must be at least 8 characters.', 'danger')
+        password_error = validate_password_strength(password)
+        if password_error:
+            flash(password_error, 'danger')
             return render_template('auth/register.html')
 
         if User.query.filter_by(email=email).first():

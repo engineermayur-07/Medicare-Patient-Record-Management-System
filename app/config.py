@@ -1,4 +1,5 @@
 import os
+from decimal import Decimal
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -30,6 +31,11 @@ class Config:
     ADMIN_USERNAME = os.getenv('ADMIN_USERNAME', 'admin')
     ADMIN_EMAIL = os.getenv('ADMIN_EMAIL', 'admin@medicare.com')
     ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'Admin@1234')
+
+    # Razorpay test mode
+    RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID', '')
+    RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET', '')
+    APPOINTMENT_FEE = Decimal(os.getenv('APPOINTMENT_FEE', '500.00'))
 
     # Gemini health-summary assistant
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')

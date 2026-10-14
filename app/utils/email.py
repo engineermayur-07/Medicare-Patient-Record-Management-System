@@ -1,4 +1,5 @@
 import smtplib
+from html import escape
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import current_app
@@ -89,4 +90,66 @@ def send_otp_email(to_email: str, otp_code: str, user_name: str) -> bool:
         return True
     except Exception as e:
         current_app.logger.error(f'Failed to send OTP email: {e}')
+        return False
+
+
+def send_fee_reminder_email(to_email: str, user_name: str, payments) -> bool:
+    """Send a reminder for the patient's unpaid fees."""
+    username = current_app.config['MAIL_USERNAME']
+    password = current_app.config['MAIL_APP_PASSWORD']
+
+    if not username or not password:
+        current_app.logger.error('SMTP credentials not configured.')
+        return False
+
+    total = sum(payment.amount for payment in payments)
+    rows = ''.join(
+        f'<tr><td>{escape(payment.description)}</td>'
+        f'<td>{escape(payment.currency)} {payment.amount:.2f}</td></tr>'
+        for payment in payments
+    )
+    html_body = f"""
+    <html><body style="font-family:Arial,sans-serif;color:#1e293b">
+      <h2 style="color:#1d4ed8">MediCare Hospital</h2>
+      <p>Hello <strong>{escape(user_name)}</strong>,</p>
+      <p>This is a reminder that the following medical fees are pending:</p>
+      <table style="border-collapse:collapse;width:100%;max-width:600px">
+        <tr><th align="left" style="padding:8px;border-bottom:1px solid #ddd">Description</th>
+            <th align="left" style="padding:8px;border-bottom:1px solid #ddd">Amount</th></tr>
+        {rows}
+        <tr><td style="padding:8px;font-weight:bold">Total due</td>
+            <td style="padding:8px;font-weight:bold">INR {total:.2f}</td></tr>
+      </table>
+      <p>Please sign in to your MediCare account to complete payment.</p>
+      <p style="color:#64748b;font-size:12px">If you have already paid, please ignore this message.</p>
+    </body></html>
+    """
+    text_body = (
+        f'Hello {user_name},\n\n'
+        'The following medical fees are pending:\n'
+        + '\n'.join(
+            f'- {payment.description}: {payment.currency} {payment.amount:.2f}'
+            for payment in payments
+        )
+        + f'\n\nTotal due: INR {total:.2f}\n'
+        'Please sign in to your MediCare account to complete payment.\n'
+    )
+
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = 'MediCare — Pending Fee Reminder'
+    msg['From'] = f'MediCare Hospital <{username}>'
+    msg['To'] = to_email
+    msg.attach(MIMEText(text_body, 'plain'))
+    msg.attach(MIMEText(html_body, 'html'))
+
+    try:
+        with smtplib.SMTP(current_app.config['MAIL_SERVER'],
+                          current_app.config['MAIL_PORT']) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(username, password)
+            server.sendmail(username, to_email, msg.as_string())
+        return True
+    except Exception as e:
+        current_app.logger.error(f'Failed to send fee reminder email: {e}')
         return False

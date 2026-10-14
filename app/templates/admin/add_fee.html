@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Create Medical Fee — MediCare{% endblock %}
+
+{% block content %}
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar sidebar-avatar-teal">A</div>
+      <div><p class="sidebar-name">Admin</p><p class="sidebar-role">Administrator</p></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.add_medical_fee') }}" class="sidebar-link active">💳 Medical Fees</a>
+      <a href="{{ url_for('auth.logout') }}" class="sidebar-link sidebar-logout">🚪 Logout</a>
+    </nav>
+  </aside>
+  <div class="dash-main">
+    <div class="dash-topbar"><h1 class="dash-title">Create Medical Fee</h1></div>
+    <div class="card" style="max-width:650px">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="form-group">
+          <label for="user_id">Patient</label>
+          <select id="user_id" name="user_id" class="form-input" required>
+            <option value="">Select patient</option>
+            {% for user in users %}
+              <option value="{{ user.id }}">{{ user.name }} — {{ user.email }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Fee description</label>
+          <input id="description" name="description" class="form-input"
+                 placeholder="e.g. Blood test, consultation, scan"
+                 maxlength="255" required>
+        </div>
+        <div class="form-group">
+          <label for="amount">Amount (INR)</label>
+          <input id="amount" name="amount" type="number" min="0.01" step="0.01"
+                 max="499999.99" class="form-input" required>
+          <span class="form-hint">Amount must be below ₹500,000 and may have up to two decimals.</span>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Fee</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

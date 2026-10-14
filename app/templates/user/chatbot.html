@@ -5,7 +5,12 @@
 <div class="dash-layout">
   <aside class="dash-sidebar">
     <div class="sidebar-user">
-      <div class="sidebar-avatar">{{ session.user_name[0].upper() }}</div>
+      {% if session.get('user_id') %}
+        <img class="sidebar-avatar profile-photo-small"
+             src="{{ url_for('user.profile_photo') }}" alt="Profile photo"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="sidebar-avatar" style="display:none">{{ session.user_name[0].upper() }}</div>
+      {% endif %}
       <div>
         <p class="sidebar-name">{{ session.user_name }}</p>
         <p class="sidebar-role">Patient</p>

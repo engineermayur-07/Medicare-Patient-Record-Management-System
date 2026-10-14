@@ -15,6 +15,8 @@
     </div>
     <nav class="sidebar-nav">
       <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link active">🏠 Dashboard</a>
+      <a href="{{ url_for('admin.patients') }}" class="sidebar-link">👥 Patients</a>
+      <a href="{{ url_for('admin.add_medical_fee') }}" class="sidebar-link">💳 Medical Fees</a>
       <a href="{{ url_for('admin.doctors_list') }}" class="sidebar-link">👨‍⚕️ Doctors</a>
       <a href="{{ url_for('admin.add_doctor') }}" class="sidebar-link">➕ Add Doctor</a>
       <a href="{{ url_for('admin.services') }}" class="sidebar-link">🏥 Services</a>

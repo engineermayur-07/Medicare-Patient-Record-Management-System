@@ -4,11 +4,14 @@ seed.py — Run once to create the admin account and seed sample data.
 Usage:
     python seed.py
 """
+from datetime import date
+
 from app import create_app
 from app.extensions import db
 from app.models.admin import Admin
 from app.models.doctor import Doctor
 from app.models.service import Service
+from app.models.user import User
 from app.config import Config
 
 app = create_app()
@@ -87,6 +90,76 @@ def seed():
             else:
                 print(f'[=] Doctor exists: {d["name"]}')
 
+        # ─── Sample Users ───
+        sample_users = [
+            {
+                'name': 'Aarav Mehta', 'email': 'aarav.mehta@example.com',
+                'password': 'Patient@1234', 'phone': '9876501001',
+                'dob': '1992-04-15', 'medical_conditions': 'None',
+            },
+            {
+                'name': 'Diya Nair', 'email': 'diya.nair@example.com',
+                'password': 'Patient@1234', 'phone': '9876501002',
+                'dob': '1988-09-22', 'medical_conditions': 'Seasonal allergies',
+            },
+            {
+                'name': 'Rohan Singh', 'email': 'rohan.singh@example.com',
+                'password': 'Patient@1234', 'phone': '9876501003',
+                'dob': '1979-01-08', 'medical_conditions': 'Hypertension',
+            },
+            {
+                'name': 'Ananya Iyer', 'email': 'ananya.iyer@example.com',
+                'password': 'Patient@1234', 'phone': '9876501004',
+                'dob': '1995-11-30', 'medical_conditions': 'None',
+            },
+            {
+                'name': 'Vikram Joshi', 'email': 'vikram.joshi@example.com',
+                'password': 'Patient@1234', 'phone': '9876501005',
+                'dob': '1968-06-17', 'medical_conditions': 'Type 2 diabetes',
+            },
+            {
+                'name': 'Meera Kapoor', 'email': 'meera.kapoor@example.com',
+                'password': 'Patient@1234', 'phone': '9876501006',
+                'dob': '1985-02-03', 'medical_conditions': 'Asthma',
+            },
+            {
+                'name': 'Arjun Desai', 'email': 'arjun.desai@example.com',
+                'password': 'Patient@1234', 'phone': '9876501007',
+                'dob': '1990-08-19', 'medical_conditions': 'None',
+            },
+            {
+                'name': 'Kavya Rao', 'email': 'kavya.rao@example.com',
+                'password': 'Patient@1234', 'phone': '9876501008',
+                'dob': '2001-12-11', 'medical_conditions': 'Iron deficiency anemia',
+            },
+            {
+                'name': 'Sameer Khan', 'email': 'sameer.khan@example.com',
+                'password': 'Patient@1234', 'phone': '9876501009',
+                'dob': '1975-03-27', 'medical_conditions': 'High cholesterol',
+            },
+            {
+                'name': 'Ishita Verma', 'email': 'ishita.verma@example.com',
+                'password': 'Patient@1234', 'phone': '9876501010',
+                'dob': '1998-07-06', 'medical_conditions': 'None',
+            },
+        ]
+
+        for data in sample_users:
+            if not User.query.filter_by(email=data['email']).first():
+                user = User(
+                    name=data['name'],
+                    email=data['email'],
+                    phone=data['phone'],
+                    dob=date.fromisoformat(data['dob']),
+                    medical_conditions=data['medical_conditions'],
+                    is_verified=True,
+                )
+                user.set_password(data['password'])
+                db.session.add(user)
+                print(f'[+] User: {data["name"]} ({data["email"]})')
+            else:
+                print(f'[=] User exists: {data["name"]}')
+
         # ─── Sample Services ───
         sample_services = [
             ('Cardiology', 'Cardiology', '❤️',
@@ -117,6 +190,7 @@ def seed():
         print('\n✅ Seeding complete!')
         print(f'\nAdmin login: {Config.ADMIN_EMAIL}  /  {Config.ADMIN_PASSWORD}')
         print('Doctor login (all): Doctor@1234')
+        print('User login (all): Patient@1234')
 
 
 if __name__ == '__main__':

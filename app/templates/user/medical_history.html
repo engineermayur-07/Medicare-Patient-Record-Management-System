@@ -7,7 +7,12 @@
   <!-- Sidebar -->
   <aside class="dash-sidebar">
     <div class="sidebar-user">
-      <div class="sidebar-avatar">{{ session.user_name[0].upper() }}</div>
+      {% if user.profile_photo_path %}
+        <img class="sidebar-avatar profile-photo-small"
+             src="{{ url_for('user.profile_photo') }}" alt="Profile photo">
+      {% else %}
+        <div class="sidebar-avatar">{{ session.user_name[0].upper() }}</div>
+      {% endif %}
       <div>
         <p class="sidebar-name">{{ session.user_name }}</p>
         <p class="sidebar-role">Patient</p>

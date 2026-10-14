@@ -26,9 +26,16 @@
 
     <!-- Patient banner -->
     <div class="patient-banner">
-      <div class="appt-avatar appt-avatar-green" style="width:60px;height:60px;font-size:1.4rem;flex-shrink:0">
-        {{ patient.name[0].upper() }}
-      </div>
+      {% if patient.profile_photo_path %}
+        <img class="appt-avatar appt-avatar-green profile-photo-small"
+             style="width:60px;height:60px"
+             src="{{ url_for('user.patient_profile_photo', user_id=patient.id) }}"
+             alt="{{ patient.name }}'s profile photo">
+      {% else %}
+        <div class="appt-avatar appt-avatar-green" style="width:60px;height:60px;font-size:1.4rem;flex-shrink:0">
+          {{ patient.name[0].upper() }}
+        </div>
+      {% endif %}
       <div style="flex:1">
         <h1 class="dash-title" style="margin:0">{{ patient.name }}</h1>
         <p class="dash-sub">{{ patient.email }}

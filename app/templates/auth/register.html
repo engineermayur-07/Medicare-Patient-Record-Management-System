@@ -44,7 +44,8 @@
           <label for="password">Password</label>
           <div class="input-eye-wrap">
             <input type="password" id="password" name="password" class="form-input"
-                   placeholder="Min. 8 characters" required>
+                   placeholder="8+ chars, upper/lower/number/symbol" required
+                   minlength="8">
             <button type="button" class="eye-toggle" onclick="toggleEye('password', this)">👁</button>
           </div>
         </div>
@@ -59,7 +60,8 @@
       </div>
 
       <p class="form-hint">
-        A 6-digit verification code will be sent to your email after registration.
+        Use at least 8 characters with uppercase, lowercase, a number, and a symbol.
+        A 6-digit verification code will be sent after registration.
       </p>
 
       <button type="submit" class="btn btn-primary btn-full">Create Account & Send OTP</button>

@@ -41,7 +41,13 @@
       <div class="appt-list">
         {% for appt in appointments %}
           <div class="appt-card {% if appt.status in ['completed', 'cancelled'] %}appt-card-muted{% endif %}">
-            <div class="appt-avatar appt-avatar-green">{{ appt.user.name[0].upper() }}</div>
+            {% if appt.user.profile_photo_path %}
+              <img class="appt-avatar appt-avatar-green profile-photo-small"
+                   src="{{ url_for('user.patient_profile_photo', user_id=appt.user.id) }}"
+                   alt="{{ appt.user.name }}'s profile photo">
+            {% else %}
+              <div class="appt-avatar appt-avatar-green">{{ appt.user.name[0].upper() }}</div>
+            {% endif %}
             <div class="appt-info">
               <p class="appt-doctor">{{ appt.user.name }}</p>
               <p class="appt-spec">{{ appt.user.email }}

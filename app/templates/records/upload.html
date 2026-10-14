@@ -22,9 +22,16 @@
       <div class="card">
         <h3 class="card-title">Patient</h3>
         <div class="patient-info-row">
-          <div class="appt-avatar appt-avatar-green" style="width:52px;height:52px;font-size:1.2rem">
-            {{ patient.name[0].upper() }}
-          </div>
+          {% if patient.profile_photo_path %}
+            <img class="appt-avatar appt-avatar-green profile-photo-small"
+                 style="width:52px;height:52px"
+                 src="{{ url_for('user.patient_profile_photo', user_id=patient.id) }}"
+                 alt="{{ patient.name }}'s profile photo">
+          {% else %}
+            <div class="appt-avatar appt-avatar-green" style="width:52px;height:52px;font-size:1.2rem">
+              {{ patient.name[0].upper() }}
+            </div>
+          {% endif %}
           <div>
             <p class="patient-name">{{ patient.name }}</p>
             <p class="patient-email">{{ patient.email }}</p>

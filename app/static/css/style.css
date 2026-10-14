@@ -465,6 +465,97 @@ select.form-input { cursor: pointer; }
 .text-muted  { color: var(--text-muted); }
 .no-results  { text-align: center; color: var(--text-muted); padding: 32px; font-size: 15px; }
 
+.profile-card { max-width: 720px; }
+.profile-header { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+.profile-header h2 { font-size: 1.25rem; }
+.profile-photo {
+  width: 88px; height: 88px; border-radius: 50%; object-fit: cover;
+  border: 3px solid #DBEAFE;
+}
+.profile-photo-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  color: #fff; font-size: 2rem; font-weight: 700;
+}
+.profile-photo-small { object-fit: cover; }
+.admin-profile-photo {
+  display: block; width: 120px; height: 120px; object-fit: cover;
+  border-radius: 12px; border: 1px solid var(--border); margin-top: 8px;
+}
+
+/* Payment checkout */
+.payment-secure-note {
+  margin: 14px 0;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 600;
+}
+.payment-methods {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 20px 0 16px;
+}
+.payment-method {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  text-align: left;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+.payment-method span {
+  grid-row: 1 / 3;
+  font-size: 21px;
+}
+.payment-method strong {
+  font-size: 13px;
+}
+.payment-method small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.payment-method.active {
+  border-color: var(--blue);
+  background: #EFF6FF;
+  box-shadow: 0 0 0 1px var(--blue);
+}
+.payment-method-panel {
+  padding: 14px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid var(--border);
+}
+.payment-method-panel label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.payment-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.payment-qr {
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 10px;
+  border: 8px solid #fff;
+  background: #0f172a;
+  color: #fff;
+  font-size: 75px;
+}
+
 /* Patient health assistant */
 .chat-messages {
   min-height: 260px;
