@@ -231,7 +231,7 @@ A line-by-line explanation of the control flow, models, sessions, decorators, Ji
 
 ## 👥 Team
 
-Built by students of **Sanjivani College of Engineering, Shirdi** (SY B.Tech) as part of a Community Engagement Project:
+Built by students of **Sanjivani College of Engineering, Kopargaon** (SY B.Tech) as part of a Community Engagement Project:
 
 - **Mayur Gund**
 - **Rohit Khokale**
