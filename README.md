@@ -37,11 +37,11 @@ It is a **server-rendered full-stack app**: Flask renders Jinja2 templates, with
 
 | Home Page | Patient Dashboard |
 |:---:|:---:|
-| ![Home](docs/screenshots/home.png) | ![Patient](docs/screenshots/patient-dashboard.png) |
+| ![Home](home.png) | ![Patient](patient-dashboard.png) |
 
 | Doctor Dashboard | Admin Dashboard |
 |:---:|:---:|
-| ![Doctor](docs/screenshots/doctor-dashboard.png) | ![Admin](docs/screenshots/admin-dashboard.png) |
+| ![Doctor](doctor-dashboard.png) | ![Admin](admin-dashboard.png) |
 
 ---
 
